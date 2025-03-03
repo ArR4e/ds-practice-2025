@@ -2,17 +2,37 @@ syntax = "proto3";
 
 package verification;
 
-import "fraud_detection/fraud_detection.proto";
 
 service Verify{
-    rpc CheckOrder (Order) returns (verificationResponse);
+    rpc CheckOrder (verificationRequest) returns (verificationResponse);
 }
 
-message Order{
-    string user = 1;
-    string creditCard = 2;
-    string items = 3;
-    string billing = 4;
+message verificationRequest{
+    message User {
+        string name = 1;
+        string contact = 2;
+    }
+    message OrderData {
+        message OrderItem {
+            string name = 1;
+            int32 quantity = 2;
+        }
+        repeated OrderItem orderItems = 1;
+        string discountCode = 2;
+        string shippingMethod = 3;
+    }
+    message CreditCard {
+        string number = 1;
+        string expirationDate = 2;
+        string cvv = 3;
+    }
+    message BillingAddress {
+        string street = 1;
+        string city = 2;
+        string state = 3;
+        string zip = 4;
+        string country = 5;
+    }
 }
 
 message verificationResponse{

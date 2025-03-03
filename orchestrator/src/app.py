@@ -12,17 +12,19 @@ sys.path.insert(0, verification_grpc_path)
 from fraud_detection_pb2 import FraudDetectionResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 from checkout_request import CheckoutRequest, OrderStatusResponse
-from fraud_detection_mappers import compose_fraud_detection_request
+from fraud_detection_mappers import compose_fraud_detection_request,compose_verification_request
 
-import verification_pb2
+
 from verification_pb2 import verificationResponse
-import verification_pb2_grpc
+from verification_pb2_grpc import VerifyStub
 
 import grpc
 
-def verify_Order(request_data) -> verificationResponse:
+def verify_order(request_data) -> verificationResponse:
+    with grpc.insecure_channel('verification:50052') as channel:
+        stub = VerifyStub(channel=channel)
+        return stub.CheckOrder(compose_verification_request(checkout_request=request_data))
     
-    return
 
 def detect_fraud(request: CheckoutRequest) -> FraudDetectionResponse:
     # Establish a connection with the fraud-detection gRPC service.
@@ -76,6 +78,10 @@ def checkout():
     if fraud_detection_response.isFraudulent:
         return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
 
+    verification_response = verify_order(request_data=request_data)
+    if verification_response.statuscode == 0:
+        return create_error_message("500", "ERROR VERIFING ORDER"), 500
+    
     # Dummy response following the provided YAML specification for the bookstore
     order_status_response: OrderStatusResponse = {
         'orderId': '12345',
