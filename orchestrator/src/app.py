@@ -9,6 +9,8 @@ fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/p
 sys.path.insert(0, fraud_detection_grpc_path)
 import fraud_detection_pb2 as fraud_detection
 import fraud_detection_pb2_grpc as fraud_detection_grpc
+from utils.pb.verification import verification_pb2
+from utils.pb.verification import verification_pb2_grpc
 
 import grpc
 
@@ -20,6 +22,23 @@ def greet(name='you'):
         # Call the service through the stub object.
         response = stub.SayHello(fraud_detection.HelloRequest(name=name))
     return response.greeting
+
+def verifyOrder(request_data) -> verification_pb2.Order:
+    user = request_data.get('user')
+    credit_card = request_data.get('creditCard')
+    items = request_data.get('items')
+    address = request_data.get('billingAddress')
+    
+    with grpc.insecure_channel('verification:50052') as channel:
+        stub = verification_pb2_grpc.VerifyStub(channel=channel)
+        status = stub.CheckOrder(
+            verification_pb2.Order(
+                user=user,
+                creditCard=credit_card,
+                items=items,
+                billing=address))
+        print(status.statusMsg)
+        return status
 
 # Import Flask.
 # Flask is a web framework for Python.
@@ -54,6 +73,8 @@ def checkout():
     request_data = json.loads(request.data)
     # Print request object data
     print("Request Data:", request_data.get('items'))
+    verification = verifyOrder(request_data=request_data)
+    print(f'order status: {verification.statusCode} -> {verification.statusMsg}')
 
     # Dummy response following the provided YAML specification for the bookstore
     order_status_response = {
