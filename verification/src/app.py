@@ -7,9 +7,11 @@ import os
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
+
 import verification_pb2 as verification
 import verification_pb2_grpc as verification_grpc
 import grpc
+from concurrent import futures
 
 class VerificationService(verification_grpc.VerifyServicer):
     def CheckOrder(self, request:verification.Order, context):
@@ -19,7 +21,7 @@ class VerificationService(verification_grpc.VerifyServicer):
          return response
 
 def server():
-     server = grpc.server()
+     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
      verification_grpc.add_VerifyServicer_to_server(VerificationService(),server)
      port = "50052"
      server.add_insecure_port("[::]:" + port)
@@ -27,5 +29,6 @@ def server():
      print(f'Verification service started on port {port}')
      server.wait_for_termination()
 
-     if __name__ == '__main__':
-          server()
+
+if __name__ == '__main__':
+    server()
