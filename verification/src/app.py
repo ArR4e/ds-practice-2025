@@ -8,8 +8,8 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from utils.pb.verification import verification_pb2
-from utils.pb.verification import verification_pb2_grpc
+import verification_pb2
+import verification_pb2_grpc
 import grpc
 from concurrent import futures
 

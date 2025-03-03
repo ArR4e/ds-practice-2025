@@ -7,11 +7,22 @@ import os
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/fraud_detection'))
 sys.path.insert(0, fraud_detection_grpc_path)
+verification_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
+sys.path.insert(0, verification_grpc_path)
 from fraud_detection_pb2 import FraudDetectionResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 from checkout_request import CheckoutRequest, OrderStatusResponse
 from fraud_detection_mappers import compose_fraud_detection_request
+
+import verification_pb2
+from verification_pb2 import verificationResponse
+import verification_pb2_grpc
+
 import grpc
+
+def verify_Order(request_data) -> verificationResponse:
+    
+    return
 
 def detect_fraud(request: CheckoutRequest) -> FraudDetectionResponse:
     # Establish a connection with the fraud-detection gRPC service.
@@ -28,6 +39,7 @@ def create_error_message(code: str, message: str):
             "message": message
         }
     }
+
 # Import Flask.
 # Flask is a web framework for Python.
 # It allows you to build a web application quickly.
@@ -55,8 +67,6 @@ def checkout():
     request_data: CheckoutRequest = json.loads(request.data)
     # Print request object data
     print("Request Data:", request_data.get('items'))
-    verification = verifyOrder(request_data=request_data)
-    print(f'order status: {verification.statusCode} -> {verification.statusMsg}')
 
     fraud_detection_response = detect_fraud(request_data)
     if fraud_detection_response.isFraudulent:
