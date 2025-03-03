@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package verification;
+
+service Verify{
+    rpc CheckOrder (Order) returns (verificationResponse);
+}
+
+message Order{
+    string user = 1;
+    string creditCard = 2;
+    string items = 3;
+    string billing = 4;
+}
+
+message verificationResponse{
+    int32 statusCode = 1;
+    string statusMsg = 2;
+}
