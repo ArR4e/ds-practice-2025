@@ -15,10 +15,24 @@ import grpc
 import datetime
 from concurrent import futures
 
+import logging.config
+from pathlib import Path
+from json import load
+
+
 class VerificationService(verification_pb2_grpc.VerifyServicer):
-    
-    def CheckOrder(self, request:verificationRequest, context) -> verification_pb2.verificationResponse:
-         print(f'verifing order from user {request.user}')
+
+     global logger
+     logger = logging.getLogger("verification_logger")
+     path = Path("./config.json")
+     with open(path) as file:
+          config = load(file)
+     logging.config.dictConfig(config=config)
+
+     
+
+     def CheckOrder(self, request:verificationRequest, context) -> verification_pb2.verificationResponse:
+         logger.info(f'verifing order from user {request.user}')
          name:str = request.user.name
          email:str = request.user.contact
          creditcard = request.creditCard
