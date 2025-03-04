@@ -21,6 +21,19 @@ from verification_pb2_grpc import VerifyStub
 import hashlib
 import grpc
 
+import logging.config
+from pathlib import Path
+from json import load
+
+#TODO implement the actual logging in the methods 
+
+global logger
+logger = logging.getLogger("orchestrator_logger")
+path = Path(__file__).parent/"config.json"
+with open(path) as file:
+    config = load(file)
+logging.config.dictConfig(config=config)
+
 def verify_order(request_data) -> verificationResponse:
     with grpc.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel=channel)
@@ -101,7 +114,7 @@ def checkout():
             {'bookId': '456', 'title': 'The Second Best Book', 'author': 'Author 2'}
         ]
     }
-
+    logger.info(f"Confirmed purchace for order: {orderID}")
     return order_status_response, 200
 
 

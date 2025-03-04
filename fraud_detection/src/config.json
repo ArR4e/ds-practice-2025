@@ -26,7 +26,7 @@
            "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter":"advanced",
-            "filename":"/var/log/verification/verification.log",
+            "filename":"/var/log/fraud_detection/fraud_detection.log",
             "maxBytes":10000000,
             "backupCount":3
         }

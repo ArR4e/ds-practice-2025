@@ -1,3 +1,6 @@
 __pycache__
 virtualenv/*
 .vscode
+logs/fraud_detection/*
+logs/orchestrator/*
+logs/verification/*

@@ -24,7 +24,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
 
      global logger
      logger = logging.getLogger("verification_logger")
-     path = Path("./config.json")
+     path = Path(__file__).parent/"config.json"
      with open(path) as file:
           config = load(file)
      logging.config.dictConfig(config=config)
@@ -37,18 +37,18 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
          email:str = request.user.contact
          creditcard = request.creditCard
          if any(char.isdigit() for char in name):
-              print(f"FAILURE: validation for {request} has failed")
+              logger.info(f"FAILURE: validation for {request} has failed")
               return generate_failure_message("found numbers in name")
          if not email.__contains__('@'):
-              print(f"FAILURE: validation for {request} has failed")
+              logger.info(f"FAILURE: validation for {request} has failed")
               return generate_failure_message("invalid email")
          if len(creditcard.cvv) != 3:
-               print(f"FAILURE: validation for {request} has failed")
+               logger.info(f"FAILURE: validation for {request} has failed")
                return generate_failure_message("invalid CVV")
          if not check_expiration_date(creditcard):
-              print(f"FAILURE: validation for {request} has failed")
+              logger.info(f"FAILURE: validation for {request} has failed")
               return generate_failure_message("invalid expiration date")
-         print(f"SUCCESS: validation for {request} was successful\n\n")
+         logger.info(f"SUCCESS: validation for {request} was successful")
          return generate_success_message()
          
 def check_expiration_date(creditcard: verificationRequest.creditCard) -> bool:
@@ -60,7 +60,7 @@ def check_expiration_date(creditcard: verificationRequest.creditCard) -> bool:
                return True
           return False
      except:
-          print("error parsing expirationDate -->", creditcard.expirationDate)
+          logger.error("error parsing expirationDate -->", creditcard.expirationDate)
           return False
 
 def server():
