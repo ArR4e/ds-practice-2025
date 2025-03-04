@@ -8,6 +8,7 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
+from verification_pb2 import verificationRequest
 import verification_pb2
 import verification_pb2_grpc
 import grpc
@@ -15,7 +16,7 @@ from concurrent import futures
 
 class VerificationService(verification_pb2_grpc.VerifyServicer):
     
-    def CheckOrder(self, request:verification_pb2.Order, context):
+    def CheckOrder(self, request:verificationRequest, context):
          print(f'recived order user {request.user}')
          response = verification_pb2.verificationResponse()
          response.statusCode = 0

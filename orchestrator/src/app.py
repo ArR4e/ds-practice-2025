@@ -18,10 +18,11 @@ from fraud_detection_mappers import compose_fraud_detection_request,compose_veri
 from verification_pb2 import verificationResponse
 from verification_pb2_grpc import VerifyStub
 
+
 import grpc
 
 def verify_order(request_data) -> verificationResponse:
-    with grpc.insecure_channel('verification:50052') as channel:
+    with grpc.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel=channel)
         return stub.CheckOrder(compose_verification_request(checkout_request=request_data))
     
@@ -79,7 +80,7 @@ def checkout():
         return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
 
     verification_response = verify_order(request_data=request_data)
-    if verification_response.statuscode == 0:
+    if verification_response.statusCode != 0:
         return create_error_message("500", "ERROR VERIFING ORDER"), 500
     
     # Dummy response following the provided YAML specification for the bookstore

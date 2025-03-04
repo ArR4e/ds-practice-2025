@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from verification import verification_pb2 as verification_dot_verification__pb2
+import verification_pb2 as verification_dot_verification__pb2
 
 
 class VerifyStub(object):
