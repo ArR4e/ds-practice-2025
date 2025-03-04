@@ -18,7 +18,7 @@ from fraud_detection_mappers import compose_fraud_detection_request,compose_veri
 from verification_pb2 import verificationResponse
 from verification_pb2_grpc import VerifyStub
 
-
+import hashlib
 import grpc
 
 def verify_order(request_data) -> verificationResponse:
@@ -42,6 +42,12 @@ def create_error_message(code: str, message: str):
             "message": message
         }
     }
+
+def get_orderID(request_data:CheckoutRequest):
+    orderID = hashlib.new('sha256')
+    orderID.update(json.dumps(request_data.get('user')).encode())
+    orderID.update(os.urandom(8))
+    return orderID.hexdigest()
 
 # Import Flask.
 # Flask is a web framework for Python.
@@ -71,21 +77,24 @@ def checkout():
     # Print request object data
     print("Request Data:", request_data.get('items'))
 
-    fraud_detection_response = detect_fraud(request_data)
-    if fraud_detection_response.isFraudulent:
-        return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
-
-    fraud_detection_response = detect_fraud(request_data)
-    if fraud_detection_response.isFraudulent:
-        return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
-
     verification_response = verify_order(request_data=request_data)
     if verification_response.statusCode != 0:
-        return create_error_message("500", "ERROR VERIFING ORDER"), 500
+        return create_error_message("500", verification_response.statusMsg), 500
+
+    fraud_detection_response = detect_fraud(request_data)
+    if fraud_detection_response.isFraudulent:
+        return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
+
+    fraud_detection_response = detect_fraud(request_data)
+    if fraud_detection_response.isFraudulent:
+        return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
+
     
+    orderID = get_orderID(request_data=request_data)
+
     # Dummy response following the provided YAML specification for the bookstore
     order_status_response: OrderStatusResponse = {
-        'orderId': '12345',
+        'orderId': orderID,
         'status': 'Order Approved',
         'suggestedBooks': [
             {'bookId': '123', 'title': 'The Best Book', 'author': 'Author 1'},
