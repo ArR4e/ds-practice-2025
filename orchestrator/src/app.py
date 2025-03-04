@@ -7,11 +7,25 @@ import os
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/fraud_detection'))
 sys.path.insert(0, fraud_detection_grpc_path)
+verification_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
+sys.path.insert(0, verification_grpc_path)
 from fraud_detection_pb2 import FraudDetectionResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 from checkout_request import CheckoutRequest, OrderStatusResponse
-from fraud_detection_mappers import compose_fraud_detection_request
+from fraud_detection_mappers import compose_fraud_detection_request,compose_verification_request
+
+
+from verification_pb2 import verificationResponse
+from verification_pb2_grpc import VerifyStub
+
+import hashlib
 import grpc
+
+def verify_order(request_data) -> verificationResponse:
+    with grpc.insecure_channel('order_verification:50052') as channel:
+        stub = VerifyStub(channel=channel)
+        return stub.CheckOrder(compose_verification_request(checkout_request=request_data))
+    
 
 def detect_fraud(request: CheckoutRequest) -> FraudDetectionResponse:
     # Establish a connection with the fraud-detection gRPC service.
@@ -28,6 +42,13 @@ def create_error_message(code: str, message: str):
             "message": message
         }
     }
+
+def get_orderID(request_data:CheckoutRequest):
+    orderID = hashlib.new('sha256')
+    orderID.update(json.dumps(request_data.get('user')).encode())
+    orderID.update(os.urandom(8))
+    return orderID.hexdigest()
+
 # Import Flask.
 # Flask is a web framework for Python.
 # It allows you to build a web application quickly.
@@ -56,13 +77,24 @@ def checkout():
     # Print request object data
     print("Request Data:", request_data.get('items'))
 
+    verification_response = verify_order(request_data=request_data)
+    if verification_response.statusCode != 0:
+        return create_error_message("500", verification_response.statusMsg), 500
+
     fraud_detection_response = detect_fraud(request_data)
     if fraud_detection_response.isFraudulent:
         return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
 
+    fraud_detection_response = detect_fraud(request_data)
+    if fraud_detection_response.isFraudulent:
+        return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
+
+    
+    orderID = get_orderID(request_data=request_data)
+
     # Dummy response following the provided YAML specification for the bookstore
     order_status_response: OrderStatusResponse = {
-        'orderId': '12345',
+        'orderId': orderID,
         'status': 'Order Approved',
         'suggestedBooks': [
             {'bookId': '123', 'title': 'The Best Book', 'author': 'Author 1'},

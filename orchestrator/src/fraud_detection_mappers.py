@@ -1,5 +1,6 @@
 from fraud_detection_pb2 import FraudDetectionRequest
 from checkout_request import CheckoutRequest, Item
+import verification_pb2
 
 def compose_fraud_detection_request(checkout_request: CheckoutRequest) -> FraudDetectionRequest:
     print(f"Processing {checkout_request}")
@@ -26,3 +27,18 @@ def compose_fraud_detection_request(checkout_request: CheckoutRequest) -> FraudD
 def compose_order_items(items: list[Item]) -> list[FraudDetectionRequest.OrderData.OrderItem]:
     return [*map(lambda item: FraudDetectionRequest.OrderData.OrderItem(**item), items)]
 
+def compose_verificaiton_items(items: list[Item]) -> list[verification_pb2.OrderData.OrderItem]:
+    return [*map(lambda item: verification_pb2.OrderData.OrderItem(**item), items)]
+
+def compose_verification_request(checkout_request: CheckoutRequest) -> verification_pb2.verificationRequest:
+    print(f"processing {checkout_request}")
+    verification_request = verification_pb2.verificationRequest(
+        user=verification_pb2.User(**checkout_request['user']),
+        orderData=verification_pb2.OrderData(
+            orderItems=compose_verificaiton_items(checkout_request['items']),
+            shippingMethod=checkout_request['shippingMethod']
+        ),
+        creditCard=verification_pb2.CreditCard(**checkout_request['creditCard']),
+        billing=verification_pb2.BillingAddress(**checkout_request['billingAddress'])
+    )
+    return verification_request
