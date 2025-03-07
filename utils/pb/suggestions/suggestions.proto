@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package frauddetection;
+
+service SuggestionsService {
+  rpc SuggestBooks (BookSuggestionRequest) returns (BookSuggestionResponse);
+}
+
+message BookSuggestionRequest {
+  string userId = 1;
+  repeated string boughtBookIds = 2;
+}
+
+message BookSuggestionResponse {
+  message SuggestedBook {
+      string bookId = 1;
+      string title = 2;
+      string author = 3;
+  }
+  repeated SuggestedBook suggestedBooks = 1;
+}

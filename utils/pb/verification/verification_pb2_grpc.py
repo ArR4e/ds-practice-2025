@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import verification_pb2 as verification_dot_verification__pb2
+import verification_pb2 as verification__pb2
 
 
 class VerifyStub(object):
@@ -16,8 +16,8 @@ class VerifyStub(object):
         """
         self.CheckOrder = channel.unary_unary(
                 '/verification.Verify/CheckOrder',
-                request_serializer=verification_dot_verification__pb2.verificationRequest.SerializeToString,
-                response_deserializer=verification_dot_verification__pb2.verificationResponse.FromString,
+                request_serializer=verification__pb2.VerificationRequest.SerializeToString,
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
                 )
 
 
@@ -35,8 +35,8 @@ def add_VerifyServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'CheckOrder': grpc.unary_unary_rpc_method_handler(
                     servicer.CheckOrder,
-                    request_deserializer=verification_dot_verification__pb2.verificationRequest.FromString,
-                    response_serializer=verification_dot_verification__pb2.verificationResponse.SerializeToString,
+                    request_deserializer=verification__pb2.VerificationRequest.FromString,
+                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -60,7 +60,7 @@ class Verify(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/CheckOrder',
-            verification_dot_verification__pb2.verificationRequest.SerializeToString,
-            verification_dot_verification__pb2.verificationResponse.FromString,
+            verification__pb2.VerificationRequest.SerializeToString,
+            verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

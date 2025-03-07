@@ -8,7 +8,7 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from verification_pb2 import verificationRequest
+from verification_pb2 import VerificationRequest
 import verification_pb2
 import verification_pb2_grpc
 import grpc
@@ -17,7 +17,7 @@ from concurrent import futures
 
 class VerificationService(verification_pb2_grpc.VerifyServicer):
     
-    def CheckOrder(self, request:verificationRequest, context) -> verification_pb2.verificationResponse:
+    def CheckOrder(self, request:VerificationRequest, context) -> verification_pb2.VerificationResponse:
          print(f'verifing order from user {request.user}')
          name:str = request.user.name
          email:str = request.user.contact
@@ -37,7 +37,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
          print(f"SUCCESS: validation for {request} was successful\n\n")
          return generate_success_message()
          
-def check_expiration_date(creditcard: verificationRequest.creditCard) -> bool:
+def check_expiration_date(creditcard: VerificationRequest.creditCard) -> bool:
      try:
           currenttime = datetime.datetime.now()
           expiration_date:list[str] = creditcard.expirationDate.split('/')
@@ -58,17 +58,17 @@ def server():
      print(f'Verification service started on port {port}')
      server.wait_for_termination()
 
-def generate_success_message(message: str = "all good") -> verification_pb2.verificationResponse:
-     response = verification_pb2.verificationResponse()
+def generate_success_message(message: str = "all good") -> verification_pb2.VerificationResponse:
+     response = verification_pb2.VerificationResponse()
      response.statusCode = 0
      response.statusMsg = message
      return response
 
-def generate_failure_message(message: str) -> verification_pb2.verificationResponse:
-         response = verification_pb2.verificationResponse()
-         response.statusCode = 1
-         response.statusMsg = message
-         return response
+def generate_failure_message(message: str) -> verification_pb2.VerificationResponse:
+    response = verification_pb2.VerificationResponse()
+    response.statusCode = 1
+    response.statusMsg = message
+    return response
 
 if __name__ == '__main__':
     server()
