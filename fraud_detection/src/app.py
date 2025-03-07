@@ -16,18 +16,17 @@ import logging.config
 from pathlib import Path
 from json import load
 
+global logger
+logger = logging.getLogger("fraud_logger")
+path = Path(__file__).parent/"config.json"
+with open(path) as file:
+    config = load(file)
+logging.config.dictConfig(config=config)
+
 class FraudDetectionServiceService(FraudDetectionServiceServicer):
-    
-    #TODO implement the logging in the methods
-    global logger
-    logger = logging.getLogger("fraud_logger")
-    path = Path(__file__).parent/"config.json"
-    with open(path) as file:
-        config = load(file)
-    logging.config.dictConfig(config=config)
 
     def DetectFraud(self, request: FraudDetectionRequest, context):
-        logger.info(f"Incoming request {request}")
+        logger.debug(f"Incoming request {request}")
         response = FraudDetectionResponse()
         response.isFraudulent = request.telemetry.browser.name == "IE"
         response.reason = "We do not support IE (based)"
@@ -40,7 +39,7 @@ def serve():
     port = "50051"
     server.add_insecure_port("[::]:" + port)
     server.start()
-    print(f"Server started. Listening on port {port}.")
+    logger.info(f"Server started. Listening on port {port}.")
     server.wait_for_termination()
 
 if __name__ == '__main__':

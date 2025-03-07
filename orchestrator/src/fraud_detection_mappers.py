@@ -2,8 +2,6 @@ from fraud_detection_pb2 import FraudDetectionRequest
 from checkout_request import CheckoutRequest, Item
 
 def compose_fraud_detection_request(checkout_request: CheckoutRequest) -> FraudDetectionRequest:
-    print(f"Processing {checkout_request}")
-
     fraud_detection_request = FraudDetectionRequest(
         user=FraudDetectionRequest.User(**checkout_request['user']),
         orderData=FraudDetectionRequest.OrderData(

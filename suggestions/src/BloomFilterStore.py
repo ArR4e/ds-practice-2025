@@ -30,7 +30,6 @@ class BloomFilter:
     def __contains__(self, item: str) -> bool:
         # We use python magic to implement existence check as in operator
         # If signature matches we consider item to be previously added (probabilistic)
-        print("contains", all(self.bit_array[index] for index in self._get_hashes(item)))
         return all(self.bit_array[index] for index in self._get_hashes(item))
 
     def _get_hashes(self, key) -> list[int]:

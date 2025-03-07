@@ -18,35 +18,35 @@ import logging.config
 from pathlib import Path
 from json import load
 
+global logger
+logger = logging.getLogger("verification_logger")
+path = Path(__file__).parent/"config.json"
+with open(path) as file:
+    config = load(file)
+logging.config.dictConfig(config=config)
 
 class VerificationService(verification_pb2_grpc.VerifyServicer):
-    global logger
-    logger = logging.getLogger("verification_logger")
-    path = Path(__file__).parent/"config.json"
-    with open(path) as file:
-        config = load(file)
-    logging.config.dictConfig(config=config)
 
     def CheckOrder(self, request:VerificationRequest, context) -> verification_pb2.VerificationResponse:
-        logger.info(f'verifing order from user {request.user}')
-         name:str = request.user.name
-         email:str = request.user.contact
-         creditcard = request.creditCard
-         if any(char.isdigit() for char in name):
+        logger.info(f"verifing order from user {request.user}")
+        name:str = request.user.name
+        email:str = request.user.contact
+        creditcard = request.creditCard
+        if any(char.isdigit() for char in name):
+             logger.info(f"FAILURE: validation for {request} has failed")
+             return generate_failure_message("found numbers in name")
+        if not email.__contains__('@'):
+             logger.info(f"FAILURE: validation for {request} has failed")
+             return generate_failure_message("invalid email")
+        if len(creditcard.cvv) != 3:
               logger.info(f"FAILURE: validation for {request} has failed")
-              return generate_failure_message("found numbers in name")
-         if not email.__contains__('@'):
-              logger.info(f"FAILURE: validation for {request} has failed")
-              return generate_failure_message("invalid email")
-         if len(creditcard.cvv) != 3:
-               logger.info(f"FAILURE: validation for {request} has failed")
-               return generate_failure_message("invalid CVV")
-         if not check_expiration_date(creditcard):
-              logger.info(f"FAILURE: validation for {request} has failed")
-              return generate_failure_message("invalid expiration date")
-         logger.info(f"SUCCESS: validation for {request} was successful")
-         return generate_success_message()
-         
+              return generate_failure_message("invalid CVV")
+        if not check_expiration_date(creditcard):
+             logger.info(f"FAILURE: validation for {request} has failed")
+             return generate_failure_message("invalid expiration date")
+        logger.info(f"SUCCESS: validation for {request} was successful")
+        return generate_success_message()
+
 def check_expiration_date(creditcard: VerificationRequest.creditCard) -> bool:
      try:
           currenttime = datetime.datetime.now()
@@ -65,7 +65,7 @@ def server():
      port = "50052"
      server.add_insecure_port("[::]:" + port)
      server.start()
-     print(f'Verification service started on port {port}')
+     logger.info(f'Verification service started on port {port}')
      server.wait_for_termination()
 
 def generate_success_message(message: str = "all good") -> verification_pb2.VerificationResponse:
