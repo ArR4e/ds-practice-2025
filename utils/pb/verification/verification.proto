@@ -4,10 +4,10 @@ package verification;
 
 
 service Verify{
-    rpc CheckOrder (verificationRequest) returns (verificationResponse);
+    rpc CheckOrder (VerificationRequest) returns (VerificationResponse);
 }
 
-message verificationRequest{
+message VerificationRequest{
     User user = 1;
     OrderData orderData = 2;
     CreditCard creditCard = 3;
@@ -40,7 +40,7 @@ message BillingAddress {
     string country = 5;
 }
 
-message verificationResponse{
+message VerificationResponse{
     int32 statusCode = 1;
     string statusMsg = 2;
 }
