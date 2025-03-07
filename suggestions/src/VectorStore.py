@@ -32,5 +32,5 @@ class VectorStore:
 
 
     def cosine_similarity(self, vec1, vec2):
-        """Returns the cosine similarity between two vectors."""
+        #Returns the cosine similarity between two vectors.
         return np.dot(vec1, vec2) / (norm(vec1) * norm(vec2))

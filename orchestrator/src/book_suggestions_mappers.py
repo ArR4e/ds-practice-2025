@@ -5,7 +5,6 @@ def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
     return [*map(lambda item: OrderData.OrderItem(**item), items)]
 
 def compose_verification_request(checkout_request: CheckoutRequest) -> VerificationRequest:
-    print(f"processing {checkout_request}")
     verification_request = VerificationRequest(
         user=User(**checkout_request['user']),
         orderData=OrderData(

@@ -20,7 +20,9 @@ from concurrent import futures
 from typing import TypeVar, Iterable, Callable
 from random import randint
 from heapq import nlargest
-
+import logging.config
+from pathlib import Path
+from json import load
 
 # We want to boost new books (exploration)
 RECENT_BOOKS_BOOSTING = float(os.getenv('RECENT_BOOKS_BOOSTING'))
@@ -48,7 +50,16 @@ def flatten(nested_list: list[list[T]]) -> list[T]:
 def filter_nones(l: Iterable[T|None]) -> list[T]:
     return [*filter(lambda a: a, l)]
 
+global logger
+logger = logging.getLogger("suggestions_logger")
+path = Path(__file__).parent/"config.json"
+with open(path) as file:
+    config = load(file)
+logging.config.dictConfig(config=config)
+
 class SuggestionsService(SuggestionsServiceServicer):
+
+
     def SuggestBooks(self, request: BookSuggestionRequest, context):
         suggested_book_ids = self.calculate_suggested_books_ids(request.boughtBookIds, request.userId)
         suggested_books = self.get_suggested_books(suggested_book_ids)
@@ -59,19 +70,15 @@ class SuggestionsService(SuggestionsServiceServicer):
         recent_books = get_recently_arrived_books()
         bestselling_books = get_bestselling_books()
 
-        print('similar books', scored_similar_books)
-        print('bestseller', bestselling_books)
-        print('recent books', recent_books)
+        logger.debug(f'Retrieved similar books {scored_similar_books} with similarity scores')
+        logger.debug(f'Retrieved bestsellers {bestselling_books}')
+        logger.debug(f'Retrieved recent books {recent_books}')
 
         # We do not recommend what user already bought
         filter_instance = f'books:{user_id}'
         new_scored_similar_books = self.get_new_books(scored_similar_books, filter_instance, lambda scored_book: scored_book[0])
         new_recent_books = self.get_new_books(recent_books, filter_instance, lambda book_id: book_id)
         new_bestselling_books = self.get_new_books(bestselling_books, filter_instance, lambda book_id: book_id)
-
-        print('new similar books', new_scored_similar_books)
-        print('new bestseller', new_bestselling_books)
-        print('new recent books', new_recent_books)
 
         new_scored_recent_books = self.get_scores(new_recent_books, book_ids)
         new_scored_bestselling_books = self.get_scores(new_bestselling_books, book_ids)
@@ -113,7 +120,7 @@ def server() -> None:
     add_SuggestionsServiceServicer_to_server(SuggestionsService(), server)
     server.add_insecure_port("[::]:" + port)
     server.start()
-    print(f'Book suggestions service started on port {port}')
+    logger.info(f'Book suggestions service started on port {port}')
     server.wait_for_termination()
 
 

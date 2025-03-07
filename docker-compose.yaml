@@ -68,3 +68,4 @@ services:
       - ./suggestions/src:/app/suggestions/src
       - ./suggestions/data:/app/suggestions/data
       - ./suggestions/models:/app/suggestions/models
+      - ./logs/suggestions:/var/log/suggestions

@@ -42,17 +42,20 @@ logging.config.dictConfig(config=config)
 executor = ThreadPoolExecutor(thread_name_prefix="orchestrator-exec", max_workers=10)
 
 def verify_order(request_data: CheckoutRequest) -> VerificationResponse:
+    logger.debug("Calling verification service")
     with grpc.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel=channel)
         return stub.CheckOrder(compose_verification_request(checkout_request=request_data))
     
 
 def detect_fraud(request: CheckoutRequest) -> FraudDetectionResponse:
+    logger.debug("Calling fraud detection service")
     with grpc.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
         return stub.DetectFraud(compose_fraud_detection_request(request))
 
 def suggest_books(request: CheckoutRequest) -> list[Book]:
+    logger.debug("Calling fraud book suggestions service")
     with grpc.insecure_channel('book_suggestions:50053') as channel:
         stub = SuggestionsServiceStub(channel)
         response: BookSuggestionResponse = stub.SuggestBooks(
@@ -109,7 +112,8 @@ def checkout():
     Responds with a JSON object containing the order ID, status, and suggested books.
     """
     request_data: CheckoutRequest = json.loads(request.data)
-    print("Request Data:", request_data.get('items'))
+    logger.info("Serving checkout request")
+    logger.debug(f"Request Data: {request_data}")
 
     futures = [
         executor.submit(verify_order, request_data),
@@ -124,12 +128,13 @@ def checkout():
         return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
 
     order_id = get_order_id(request_data=request_data)
+    logger.debug(f"Generated order_id {order_id}")
     order_status_response: OrderStatusResponse = {
         'orderId': order_id,
         'status': 'Order Approved',
         'suggestedBooks': suggested_books
     }
-    logger.info(f"Confirmed purchace for order: {orderID}")
+    logger.info(f"Confirmed purchace for order: {order_id}")
     return order_status_response, 200
 
 
@@ -141,7 +146,7 @@ if __name__ == '__main__':
 
 
 def clean_up():
-    print("Received SIGTERM, shutting down executor...")
+    logger.info("Received SIGTERM, shutting down executor...")
     executor.shutdown(wait=True)
     sys.exit(0)
 
