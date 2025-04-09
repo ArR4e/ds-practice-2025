@@ -3,10 +3,13 @@ syntax = "proto3";
 package frauddetection;
 
 service FraudDetectionService {
-  rpc DetectFraud (FraudDetectionRequest) returns (FraudDetectionResponse);
+  rpc InitializeRequestData (FraudDetectionData) returns (InitializeRequestDataResponse);
+  rpc DetectFraudQuick (QuickFraudDetectionRequest) returns (QuickFraudDetectionResponse);
+  rpc DetectFraudComprehensive (ComprehensiveFraudDetectionRequest) returns (ComprehensiveFraudDetectionResponse);
+  rpc ClearData (ClearFraudDetectionDataRequest) returns (ClearFraudDetectionDataResponse);
 }
 
-message FraudDetectionRequest {
+message FraudDetectionData {
   message User {
     string name = 1;
     string contact = 2;
@@ -47,14 +50,38 @@ message FraudDetectionRequest {
     string screenResolution = 3;
     string referrer  = 4;
   }
-  User user = 1;
-  OrderData orderData = 2;
-  CreditCard creditCard = 3;
-  BillingAddress billingAddress = 4;
-  Telemetry telemetry = 5;
+  string orderId = 1;
+  User user = 2;
+  OrderData orderData = 3;
+  CreditCard creditCard = 4;
+  BillingAddress billingAddress = 5;
+  Telemetry telemetry = 6;
 }
 
-message FraudDetectionResponse {
+message InitializeRequestDataResponse {
+}
+
+message QuickFraudDetectionRequest {
+  string orderId = 1;
+}
+
+message QuickFraudDetectionResponse {
   bool isFraudulent = 1;
   string reason = 2;
+}
+
+message ComprehensiveFraudDetectionRequest {
+  string orderId = 1;
+}
+
+message ComprehensiveFraudDetectionResponse {
+  bool isFraudulent = 1;
+  string reason = 2;
+}
+
+message ClearFraudDetectionDataRequest {
+  string orderId = 1;
+}
+
+message ClearFraudDetectionDataResponse {
 }

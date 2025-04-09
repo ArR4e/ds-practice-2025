@@ -8,7 +8,9 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/suggestions'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from suggestions_pb2 import BookSuggestionRequest, BookSuggestionResponse
+from suggestions_pb2 import SuggestionsData, InitializeRequestDataResponse, \
+    BookSuggestionRequest, BookSuggestionResponse, \
+    ClearSuggestionsDataRequest, ClearSuggestionsDataResponse
 from suggestions_pb2_grpc import add_SuggestionsServiceServicer_to_server, SuggestionsServiceServicer
 
 from BloomFilterStore import BloomFilterStore
@@ -35,33 +37,28 @@ bloom_filter = BloomFilterStore()
 vector_store = VectorStore()
 book_store = BookStore()
 
-def score_book(book_id: int) -> [int, float]:
-    return vector_store.get_score(book_id)
-
-def get_recently_arrived_books(k = 5) -> list[str]:
-    return [str(randint(0, 63)) for _ in range(k)]
-
-def get_bestselling_books(k = 5) -> list[str]:
-    return [str(randint(0, 63)) for _ in range(k)]
-
-def flatten(nested_list: list[list[T]]) -> list[T]:
-   return [item for sub_list in nested_list for item in sub_list]
-
-def filter_nones(l: Iterable[T|None]) -> list[T]:
-    return [*filter(lambda a: a, l)]
-
 global logger
 logger = logging.getLogger("suggestions_logger")
-path = Path(__file__).parent/"config.json"
+path = Path(__file__).parent / "config.json"
 with open(path) as file:
     config = load(file)
 logging.config.dictConfig(config=config)
 
+
 class SuggestionsService(SuggestionsServiceServicer):
+    order_data_store: dict[str, SuggestionsData]
 
+    def __init__(self):
+        super().__init__(self)
+        self.order_data_store = {}
 
-    def SuggestBooks(self, request: BookSuggestionRequest, context):
-        suggested_book_ids = self.calculate_suggested_books_ids(request.boughtBookIds, request.userId)
+    def InitializeRequestData(self, request: SuggestionsData, context) -> InitializeRequestDataResponse:
+        self.order_data_store[request.orderId] = request
+        return InitializeRequestDataResponse()
+
+    def SuggestBooks(self, request: BookSuggestionRequest, context) -> BookSuggestionResponse:
+        order_data = self.order_data_store[request.orderId]
+        suggested_book_ids = self.calculate_suggested_books_ids(order_data.boughtBookIds, order_data.userId)
         suggested_books = self.get_suggested_books(suggested_book_ids)
         return BookSuggestionResponse(suggestedBooks=suggested_books)
 
@@ -76,7 +73,10 @@ class SuggestionsService(SuggestionsServiceServicer):
 
         # We do not recommend what user already bought
         filter_instance = f'books:{user_id}'
-        new_scored_similar_books = self.get_new_books(scored_similar_books, filter_instance, lambda scored_book: scored_book[0])
+        for book_id in book_ids:
+            bloom_filter.add(filter_instance, book_id)
+        new_scored_similar_books = self.get_new_books(scored_similar_books, filter_instance,
+                                                      lambda scored_book: scored_book[0])
         new_recent_books = self.get_new_books(recent_books, filter_instance, lambda book_id: book_id)
         new_bestselling_books = self.get_new_books(bestselling_books, filter_instance, lambda book_id: book_id)
 
@@ -85,12 +85,12 @@ class SuggestionsService(SuggestionsServiceServicer):
 
         # Now that we have new books, we re-rank them and pick most similar
         return [*map(lambda scored_book: scored_book[0], nlargest(10, [
-                *new_scored_similar_books,
-                *[(book_id, score * RECENT_BOOKS_BOOSTING) for (book_id, score) in new_scored_recent_books],
-                *[(book_id, score * BESTSELLERS_BOOSTING) for (book_id, score) in new_scored_bestselling_books]
-                ],
-                lambda scored_book: scored_book[1]
-        ))]
+            *new_scored_similar_books,
+            *[(book_id, score * RECENT_BOOKS_BOOSTING) for (book_id, score) in new_scored_recent_books],
+            *[(book_id, score * BESTSELLERS_BOOSTING) for (book_id, score) in new_scored_bestselling_books]
+        ],
+                                                                  lambda scored_book: scored_book[1]
+                                                                  ))]
 
     def get_scores(self, book_ids: list[str], bought_book_ids: Iterable[str]) -> list[(str, float)]:
         return filter_nones(map(lambda book_id: vector_store.get_score(book_id, bought_book_ids), book_ids))
@@ -100,19 +100,44 @@ class SuggestionsService(SuggestionsServiceServicer):
 
     def get_suggested_books(self, suggested_book_ids: list[str]) -> list[BookSuggestionResponse.SuggestedBook]:
         return [*
-            map(
-                self.to_suggested_book,
-                map(book_store.get_book_by_id, suggested_book_ids)
-            )
-        ]
+                map(
+                    self.to_suggested_book,
+                    map(book_store.get_book_by_id, suggested_book_ids)
+                )
+                ]
 
     def to_suggested_book(self, book: Book) -> BookSuggestionResponse.SuggestedBook:
         print(book)
         return BookSuggestionResponse.SuggestedBook(
-            bookId = book["bookId"],
-            title = book["title"],
-            author = book["author"]
+            bookId=book["bookId"],
+            title=book["title"],
+            author=book["author"]
         )
+
+    def ClearData(self, request: ClearSuggestionsDataRequest, context) -> ClearSuggestionsDataResponse:
+        self.order_data_store.pop(request.orderId, None)
+        return ClearSuggestionsDataResponse()
+
+
+def score_book(book_id: int) -> [int, float]:
+    return vector_store.get_score(book_id)
+
+
+def get_recently_arrived_books(k=5) -> list[str]:
+    return [str(randint(0, 63)) for _ in range(k)]
+
+
+def get_bestselling_books(k=5) -> list[str]:
+    return [str(randint(0, 63)) for _ in range(k)]
+
+
+def flatten(nested_list: list[list[T]]) -> list[T]:
+    return [item for sub_list in nested_list for item in sub_list]
+
+
+def filter_nones(l: Iterable[T | None]) -> list[T]:
+    return [*filter(lambda a: a, l)]
+
 
 def server() -> None:
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

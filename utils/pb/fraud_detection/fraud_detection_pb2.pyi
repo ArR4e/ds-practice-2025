@@ -5,8 +5,8 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class FraudDetectionRequest(_message.Message):
-    __slots__ = ("user", "orderData", "creditCard", "billingAddress", "telemetry")
+class FraudDetectionData(_message.Message):
+    __slots__ = ("orderId", "user", "orderData", "creditCard", "billingAddress", "telemetry")
     class User(_message.Message):
         __slots__ = ("name", "contact")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -26,10 +26,10 @@ class FraudDetectionRequest(_message.Message):
         ORDERITEMS_FIELD_NUMBER: _ClassVar[int]
         DISCOUNTCODE_FIELD_NUMBER: _ClassVar[int]
         SHIPPINGMETHOD_FIELD_NUMBER: _ClassVar[int]
-        orderItems: _containers.RepeatedCompositeFieldContainer[FraudDetectionRequest.OrderData.OrderItem]
+        orderItems: _containers.RepeatedCompositeFieldContainer[FraudDetectionData.OrderData.OrderItem]
         discountCode: str
         shippingMethod: str
-        def __init__(self, orderItems: _Optional[_Iterable[_Union[FraudDetectionRequest.OrderData.OrderItem, _Mapping]]] = ..., discountCode: _Optional[str] = ..., shippingMethod: _Optional[str] = ...) -> None: ...
+        def __init__(self, orderItems: _Optional[_Iterable[_Union[FraudDetectionData.OrderData.OrderItem, _Mapping]]] = ..., discountCode: _Optional[str] = ..., shippingMethod: _Optional[str] = ...) -> None: ...
     class CreditCard(_message.Message):
         __slots__ = ("number", "expirationDate", "cvv")
         NUMBER_FIELD_NUMBER: _ClassVar[int]
@@ -74,27 +74,63 @@ class FraudDetectionRequest(_message.Message):
         BROWSER_FIELD_NUMBER: _ClassVar[int]
         SCREENRESOLUTION_FIELD_NUMBER: _ClassVar[int]
         REFERRER_FIELD_NUMBER: _ClassVar[int]
-        device: FraudDetectionRequest.Telemetry.Device
-        browser: FraudDetectionRequest.Telemetry.Browser
+        device: FraudDetectionData.Telemetry.Device
+        browser: FraudDetectionData.Telemetry.Browser
         screenResolution: str
         referrer: str
-        def __init__(self, device: _Optional[_Union[FraudDetectionRequest.Telemetry.Device, _Mapping]] = ..., browser: _Optional[_Union[FraudDetectionRequest.Telemetry.Browser, _Mapping]] = ..., screenResolution: _Optional[str] = ..., referrer: _Optional[str] = ...) -> None: ...
+        def __init__(self, device: _Optional[_Union[FraudDetectionData.Telemetry.Device, _Mapping]] = ..., browser: _Optional[_Union[FraudDetectionData.Telemetry.Browser, _Mapping]] = ..., screenResolution: _Optional[str] = ..., referrer: _Optional[str] = ...) -> None: ...
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
     USER_FIELD_NUMBER: _ClassVar[int]
     ORDERDATA_FIELD_NUMBER: _ClassVar[int]
     CREDITCARD_FIELD_NUMBER: _ClassVar[int]
     BILLINGADDRESS_FIELD_NUMBER: _ClassVar[int]
     TELEMETRY_FIELD_NUMBER: _ClassVar[int]
-    user: FraudDetectionRequest.User
-    orderData: FraudDetectionRequest.OrderData
-    creditCard: FraudDetectionRequest.CreditCard
-    billingAddress: FraudDetectionRequest.BillingAddress
-    telemetry: FraudDetectionRequest.Telemetry
-    def __init__(self, user: _Optional[_Union[FraudDetectionRequest.User, _Mapping]] = ..., orderData: _Optional[_Union[FraudDetectionRequest.OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[FraudDetectionRequest.CreditCard, _Mapping]] = ..., billingAddress: _Optional[_Union[FraudDetectionRequest.BillingAddress, _Mapping]] = ..., telemetry: _Optional[_Union[FraudDetectionRequest.Telemetry, _Mapping]] = ...) -> None: ...
+    orderId: str
+    user: FraudDetectionData.User
+    orderData: FraudDetectionData.OrderData
+    creditCard: FraudDetectionData.CreditCard
+    billingAddress: FraudDetectionData.BillingAddress
+    telemetry: FraudDetectionData.Telemetry
+    def __init__(self, orderId: _Optional[str] = ..., user: _Optional[_Union[FraudDetectionData.User, _Mapping]] = ..., orderData: _Optional[_Union[FraudDetectionData.OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[FraudDetectionData.CreditCard, _Mapping]] = ..., billingAddress: _Optional[_Union[FraudDetectionData.BillingAddress, _Mapping]] = ..., telemetry: _Optional[_Union[FraudDetectionData.Telemetry, _Mapping]] = ...) -> None: ...
 
-class FraudDetectionResponse(_message.Message):
+class InitializeRequestDataResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class QuickFraudDetectionRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class QuickFraudDetectionResponse(_message.Message):
     __slots__ = ("isFraudulent", "reason")
     ISFRAUDULENT_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
     isFraudulent: bool
     reason: str
     def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ...) -> None: ...
+
+class ComprehensiveFraudDetectionRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class ComprehensiveFraudDetectionResponse(_message.Message):
+    __slots__ = ("isFraudulent", "reason")
+    ISFRAUDULENT_FIELD_NUMBER: _ClassVar[int]
+    REASON_FIELD_NUMBER: _ClassVar[int]
+    isFraudulent: bool
+    reason: str
+    def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ...) -> None: ...
+
+class ClearFraudDetectionDataRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class ClearFraudDetectionDataResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
