@@ -93,7 +93,7 @@ async def checkout() -> [OrderStatusResponse, int]:
 
             # TODO: [DS-QUEUE] Queue For Processing
             return order_status_response, 200
-    except* ErrorEvent as eg:
+    except ErrorEvent as eg:
        error_message = eg.exceptions[0].message
     return {"error": error_message}, 400
 
