@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-import verification_pb2 as verification__pb2
+import verification_pb2 as verification_dot_verification__pb2
 
 
 class VerifyStub(object):
@@ -16,23 +16,23 @@ class VerifyStub(object):
         """
         self.InitializeRequestData = channel.unary_unary(
                 '/verification.Verify/InitializeRequestData',
-                request_serializer=verification__pb2.VerificationRequest.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                request_serializer=verification_dot_verification__pb2.VerificationRequest.SerializeToString,
+                response_deserializer=verification_dot_verification__pb2.VerificationResponse.FromString,
                 )
         self.VerifyOrderData = channel.unary_unary(
                 '/verification.Verify/VerifyOrderData',
-                request_serializer=verification__pb2.VerifyData.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                request_serializer=verification_dot_verification__pb2.VerifyData.SerializeToString,
+                response_deserializer=verification_dot_verification__pb2.VerificationResponse.FromString,
                 )
         self.VerifyUserData = channel.unary_unary(
                 '/verification.Verify/VerifyUserData',
-                request_serializer=verification__pb2.VerifyData.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                request_serializer=verification_dot_verification__pb2.VerifyData.SerializeToString,
+                response_deserializer=verification_dot_verification__pb2.VerificationResponse.FromString,
                 )
         self.ClearData = channel.unary_unary(
                 '/verification.Verify/ClearData',
-                request_serializer=verification__pb2.ClearDataRequest.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                request_serializer=verification_dot_verification__pb2.ClearDataRequest.SerializeToString,
+                response_deserializer=verification_dot_verification__pb2.VerificationResponse.FromString,
                 )
 
 
@@ -68,23 +68,23 @@ def add_VerifyServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'InitializeRequestData': grpc.unary_unary_rpc_method_handler(
                     servicer.InitializeRequestData,
-                    request_deserializer=verification__pb2.VerificationRequest.FromString,
-                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+                    request_deserializer=verification_dot_verification__pb2.VerificationRequest.FromString,
+                    response_serializer=verification_dot_verification__pb2.VerificationResponse.SerializeToString,
             ),
             'VerifyOrderData': grpc.unary_unary_rpc_method_handler(
                     servicer.VerifyOrderData,
-                    request_deserializer=verification__pb2.VerifyData.FromString,
-                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+                    request_deserializer=verification_dot_verification__pb2.VerifyData.FromString,
+                    response_serializer=verification_dot_verification__pb2.VerificationResponse.SerializeToString,
             ),
             'VerifyUserData': grpc.unary_unary_rpc_method_handler(
                     servicer.VerifyUserData,
-                    request_deserializer=verification__pb2.VerifyData.FromString,
-                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+                    request_deserializer=verification_dot_verification__pb2.VerifyData.FromString,
+                    response_serializer=verification_dot_verification__pb2.VerificationResponse.SerializeToString,
             ),
             'ClearData': grpc.unary_unary_rpc_method_handler(
                     servicer.ClearData,
-                    request_deserializer=verification__pb2.ClearDataRequest.FromString,
-                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+                    request_deserializer=verification_dot_verification__pb2.ClearDataRequest.FromString,
+                    response_serializer=verification_dot_verification__pb2.VerificationResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -108,8 +108,8 @@ class Verify(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/InitializeRequestData',
-            verification__pb2.VerificationRequest.SerializeToString,
-            verification__pb2.VerificationResponse.FromString,
+            verification_dot_verification__pb2.VerificationRequest.SerializeToString,
+            verification_dot_verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -125,8 +125,8 @@ class Verify(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/VerifyOrderData',
-            verification__pb2.VerifyData.SerializeToString,
-            verification__pb2.VerificationResponse.FromString,
+            verification_dot_verification__pb2.VerifyData.SerializeToString,
+            verification_dot_verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -142,8 +142,8 @@ class Verify(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/VerifyUserData',
-            verification__pb2.VerifyData.SerializeToString,
-            verification__pb2.VerificationResponse.FromString,
+            verification_dot_verification__pb2.VerifyData.SerializeToString,
+            verification_dot_verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -159,7 +159,7 @@ class Verify(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/ClearData',
-            verification__pb2.ClearDataRequest.SerializeToString,
-            verification__pb2.VerificationResponse.FromString,
+            verification_dot_verification__pb2.ClearDataRequest.SerializeToString,
+            verification_dot_verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

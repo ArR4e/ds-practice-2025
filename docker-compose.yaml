@@ -69,3 +69,16 @@ services:
       - ./suggestions/data:/app/suggestions/data
       - ./suggestions/models:/app/suggestions/models
       - ./logs/suggestions:/var/log/suggestions
+  queue_service:
+    build:
+      context: ./
+      dockerfile: ./queue/Dockerfile
+    ports:
+      - 50055:50055
+    environment:
+      - PYTHONUNBUFFERED=TRUE
+      - PYTHONFILE=/app/queue/src/app.py
+    volumes:
+      - ./utils:/app/utils
+      - ./queue/src:/app/queue/src
+      - ./logs/queue:/var/log/queue

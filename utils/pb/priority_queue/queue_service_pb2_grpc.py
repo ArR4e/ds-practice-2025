@@ -2,7 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 import grpc
 
-from queue import queue_pb2 as queue_dot_queue__pb2
+from priority_queue import queue_service_pb2 as priority__queue_dot_queue__service__pb2
 from verification import verification_pb2 as verification_dot_verification__pb2
 
 
@@ -18,11 +18,11 @@ class QueueStub(object):
         self.Enqueue = channel.unary_unary(
                 '/queue.Queue/Enqueue',
                 request_serializer=verification_dot_verification__pb2.VerificationRequest.SerializeToString,
-                response_deserializer=queue_dot_queue__pb2.OrderConfirmation.FromString,
+                response_deserializer=priority__queue_dot_queue__service__pb2.OrderConfirmation.FromString,
                 )
         self.Dequeue = channel.unary_unary(
                 '/queue.Queue/Dequeue',
-                request_serializer=queue_dot_queue__pb2.OrderRequest.SerializeToString,
+                request_serializer=priority__queue_dot_queue__service__pb2.OrderRequest.SerializeToString,
                 response_deserializer=verification_dot_verification__pb2.VerificationRequest.FromString,
                 )
 
@@ -48,11 +48,11 @@ def add_QueueServicer_to_server(servicer, server):
             'Enqueue': grpc.unary_unary_rpc_method_handler(
                     servicer.Enqueue,
                     request_deserializer=verification_dot_verification__pb2.VerificationRequest.FromString,
-                    response_serializer=queue_dot_queue__pb2.OrderConfirmation.SerializeToString,
+                    response_serializer=priority__queue_dot_queue__service__pb2.OrderConfirmation.SerializeToString,
             ),
             'Dequeue': grpc.unary_unary_rpc_method_handler(
                     servicer.Dequeue,
-                    request_deserializer=queue_dot_queue__pb2.OrderRequest.FromString,
+                    request_deserializer=priority__queue_dot_queue__service__pb2.OrderRequest.FromString,
                     response_serializer=verification_dot_verification__pb2.VerificationRequest.SerializeToString,
             ),
     }
@@ -78,7 +78,7 @@ class Queue(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/queue.Queue/Enqueue',
             verification_dot_verification__pb2.VerificationRequest.SerializeToString,
-            queue_dot_queue__pb2.OrderConfirmation.FromString,
+            priority__queue_dot_queue__service__pb2.OrderConfirmation.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
@@ -94,7 +94,7 @@ class Queue(object):
             timeout=None,
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/queue.Queue/Dequeue',
-            queue_dot_queue__pb2.OrderRequest.SerializeToString,
+            priority__queue_dot_queue__service__pb2.OrderRequest.SerializeToString,
             verification_dot_verification__pb2.VerificationRequest.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

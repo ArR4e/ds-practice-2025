@@ -5,11 +5,17 @@ import os
 # The path of the stubs is relative to the current file, or absolute inside the container.
 # Change these lines only if strictly needed.
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
-fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/queue'))
-sys.path.insert(0, fraud_detection_grpc_path)
+queue_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/priority_queue'))
+sys.path.insert(0, queue_path)
 
-from queue_pb2_grpc import QueueServicer, add_QueueServicer_to_server
-from queue_pb2 import *
+verification_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
+sys.path.insert(0, verification_path)
+
+pb_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb'))
+sys.path.insert(0, pb_path)
+
+from queue_service_pb2_grpc import QueueServicer, add_QueueServicer_to_server
+from queue_service_pb2 import OrderConfirmation, OrderRequest
 from verification_pb2 import VerificationRequest, OrderData
 
 import grpc
