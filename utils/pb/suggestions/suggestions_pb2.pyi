@@ -5,13 +5,25 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
-class BookSuggestionRequest(_message.Message):
-    __slots__ = ("userId", "boughtBookIds")
+class SuggestionsData(_message.Message):
+    __slots__ = ("orderId", "userId", "boughtBookIds")
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
     USERID_FIELD_NUMBER: _ClassVar[int]
     BOUGHTBOOKIDS_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
     userId: str
     boughtBookIds: _containers.RepeatedScalarFieldContainer[str]
-    def __init__(self, userId: _Optional[str] = ..., boughtBookIds: _Optional[_Iterable[str]] = ...) -> None: ...
+    def __init__(self, orderId: _Optional[str] = ..., userId: _Optional[str] = ..., boughtBookIds: _Optional[_Iterable[str]] = ...) -> None: ...
+
+class InitializeResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
+
+class BookSuggestionRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
 
 class BookSuggestionResponse(_message.Message):
     __slots__ = ("suggestedBooks",)
@@ -27,3 +39,13 @@ class BookSuggestionResponse(_message.Message):
     SUGGESTEDBOOKS_FIELD_NUMBER: _ClassVar[int]
     suggestedBooks: _containers.RepeatedCompositeFieldContainer[BookSuggestionResponse.SuggestedBook]
     def __init__(self, suggestedBooks: _Optional[_Iterable[_Union[BookSuggestionResponse.SuggestedBook, _Mapping]]] = ...) -> None: ...
+
+class ClearSuggestionsDataRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class ClearSuggestionsDataResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...

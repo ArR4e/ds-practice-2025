@@ -14,9 +14,24 @@ class VerifyStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.CheckOrder = channel.unary_unary(
-                '/verification.Verify/CheckOrder',
+        self.InitializeRequestData = channel.unary_unary(
+                '/verification.Verify/InitializeRequestData',
                 request_serializer=verification__pb2.VerificationRequest.SerializeToString,
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                )
+        self.VerifyOrderData = channel.unary_unary(
+                '/verification.Verify/VerifyOrderData',
+                request_serializer=verification__pb2.VerifyData.SerializeToString,
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                )
+        self.VerifyUserData = channel.unary_unary(
+                '/verification.Verify/VerifyUserData',
+                request_serializer=verification__pb2.VerifyData.SerializeToString,
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                )
+        self.ClearData = channel.unary_unary(
+                '/verification.Verify/ClearData',
+                request_serializer=verification__pb2.ClearDataRequest.SerializeToString,
                 response_deserializer=verification__pb2.VerificationResponse.FromString,
                 )
 
@@ -24,7 +39,25 @@ class VerifyStub(object):
 class VerifyServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def CheckOrder(self, request, context):
+    def InitializeRequestData(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def VerifyOrderData(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def VerifyUserData(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearData(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -33,9 +66,24 @@ class VerifyServicer(object):
 
 def add_VerifyServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'CheckOrder': grpc.unary_unary_rpc_method_handler(
-                    servicer.CheckOrder,
+            'InitializeRequestData': grpc.unary_unary_rpc_method_handler(
+                    servicer.InitializeRequestData,
                     request_deserializer=verification__pb2.VerificationRequest.FromString,
+                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+            ),
+            'VerifyOrderData': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyOrderData,
+                    request_deserializer=verification__pb2.VerifyData.FromString,
+                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+            ),
+            'VerifyUserData': grpc.unary_unary_rpc_method_handler(
+                    servicer.VerifyUserData,
+                    request_deserializer=verification__pb2.VerifyData.FromString,
+                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+            ),
+            'ClearData': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearData,
+                    request_deserializer=verification__pb2.ClearDataRequest.FromString,
                     response_serializer=verification__pb2.VerificationResponse.SerializeToString,
             ),
     }
@@ -49,7 +97,7 @@ class Verify(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def CheckOrder(request,
+    def InitializeRequestData(request,
             target,
             options=(),
             channel_credentials=None,
@@ -59,8 +107,59 @@ class Verify(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/verification.Verify/CheckOrder',
+        return grpc.experimental.unary_unary(request, target, '/verification.Verify/InitializeRequestData',
             verification__pb2.VerificationRequest.SerializeToString,
+            verification__pb2.VerificationResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def VerifyOrderData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/verification.Verify/VerifyOrderData',
+            verification__pb2.VerifyData.SerializeToString,
+            verification__pb2.VerificationResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def VerifyUserData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/verification.Verify/VerifyUserData',
+            verification__pb2.VerifyData.SerializeToString,
+            verification__pb2.VerificationResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ClearData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/verification.Verify/ClearData',
+            verification__pb2.ClearDataRequest.SerializeToString,
             verification__pb2.VerificationResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

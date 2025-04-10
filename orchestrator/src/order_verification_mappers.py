@@ -4,12 +4,23 @@ from verification_pb2 import VerificationRequest, User, OrderData, CreditCard, B
 def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
     return [*map(lambda item: OrderData.OrderItem(**item), items)]
 
-def compose_verification_request(checkout_request: CheckoutRequest) -> VerificationRequest:
+
+# Verification Request:
+# User
+# Order data:
+#     List<items> order items
+#     Discount code
+#     shipping method
+# credit card
+# billing address
+def compose_verification_request(checkout_request: CheckoutRequest, orderId: str) -> VerificationRequest:
     verification_request = VerificationRequest(
+        orderId = orderId,
         user=User(**checkout_request['user']),
         orderData=OrderData(
             orderItems=compose_verificaiton_items(checkout_request['items']),
-            shippingMethod=checkout_request['shippingMethod']
+            shippingMethod=checkout_request['shippingMethod'],
+            discountCode = checkout_request['discountCode']
         ),
         creditCard=CreditCard(**checkout_request['creditCard']),
         billing=BillingAddress(**checkout_request['billingAddress'])

@@ -4,3 +4,4 @@ virtualenv/*
 logs/fraud_detection/*
 logs/orchestrator/*
 logs/verification/*
+logs/

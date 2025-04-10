@@ -3,12 +3,22 @@ syntax = "proto3";
 package frauddetection;
 
 service SuggestionsService {
+  rpc InitializeRequestData (SuggestionsData) returns (InitializeResponse);
   rpc SuggestBooks (BookSuggestionRequest) returns (BookSuggestionResponse);
+  rpc ClearData (ClearSuggestionsDataRequest) returns (ClearSuggestionsDataResponse);
+}
+
+message SuggestionsData {
+  string orderId = 1;
+  string userId = 2;
+  repeated string boughtBookIds = 3;
+}
+
+message InitializeResponse {
 }
 
 message BookSuggestionRequest {
-  string userId = 1;
-  repeated string boughtBookIds = 2;
+  string orderId = 1;
 }
 
 message BookSuggestionResponse {
@@ -18,4 +28,12 @@ message BookSuggestionResponse {
       string author = 3;
   }
   repeated SuggestedBook suggestedBooks = 1;
+}
+
+message ClearSuggestionsDataRequest {
+  string orderId = 1;
+}
+
+message ClearSuggestionsDataResponse {
+
 }

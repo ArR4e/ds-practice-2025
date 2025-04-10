@@ -14,17 +14,50 @@ class FraudDetectionServiceStub(object):
         Args:
             channel: A grpc.Channel.
         """
-        self.DetectFraud = channel.unary_unary(
-                '/frauddetection.FraudDetectionService/DetectFraud',
-                request_serializer=fraud__detection__pb2.FraudDetectionRequest.SerializeToString,
-                response_deserializer=fraud__detection__pb2.FraudDetectionResponse.FromString,
+        self.InitializeRequestData = channel.unary_unary(
+                '/frauddetection.FraudDetectionService/InitializeRequestData',
+                request_serializer=fraud__detection__pb2.FraudDetectionData.SerializeToString,
+                response_deserializer=fraud__detection__pb2.InitializeRequestDataResponse.FromString,
+                )
+        self.DetectFraudQuick = channel.unary_unary(
+                '/frauddetection.FraudDetectionService/DetectFraudQuick',
+                request_serializer=fraud__detection__pb2.QuickFraudDetectionRequest.SerializeToString,
+                response_deserializer=fraud__detection__pb2.QuickFraudDetectionResponse.FromString,
+                )
+        self.DetectFraudComprehensive = channel.unary_unary(
+                '/frauddetection.FraudDetectionService/DetectFraudComprehensive',
+                request_serializer=fraud__detection__pb2.ComprehensiveFraudDetectionRequest.SerializeToString,
+                response_deserializer=fraud__detection__pb2.ComprehensiveFraudDetectionResponse.FromString,
+                )
+        self.ClearData = channel.unary_unary(
+                '/frauddetection.FraudDetectionService/ClearData',
+                request_serializer=fraud__detection__pb2.ClearFraudDetectionDataRequest.SerializeToString,
+                response_deserializer=fraud__detection__pb2.ClearFraudDetectionDataResponse.FromString,
                 )
 
 
 class FraudDetectionServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
-    def DetectFraud(self, request, context):
+    def InitializeRequestData(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DetectFraudQuick(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DetectFraudComprehensive(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def ClearData(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -33,10 +66,25 @@ class FraudDetectionServiceServicer(object):
 
 def add_FraudDetectionServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
-            'DetectFraud': grpc.unary_unary_rpc_method_handler(
-                    servicer.DetectFraud,
-                    request_deserializer=fraud__detection__pb2.FraudDetectionRequest.FromString,
-                    response_serializer=fraud__detection__pb2.FraudDetectionResponse.SerializeToString,
+            'InitializeRequestData': grpc.unary_unary_rpc_method_handler(
+                    servicer.InitializeRequestData,
+                    request_deserializer=fraud__detection__pb2.FraudDetectionData.FromString,
+                    response_serializer=fraud__detection__pb2.InitializeRequestDataResponse.SerializeToString,
+            ),
+            'DetectFraudQuick': grpc.unary_unary_rpc_method_handler(
+                    servicer.DetectFraudQuick,
+                    request_deserializer=fraud__detection__pb2.QuickFraudDetectionRequest.FromString,
+                    response_serializer=fraud__detection__pb2.QuickFraudDetectionResponse.SerializeToString,
+            ),
+            'DetectFraudComprehensive': grpc.unary_unary_rpc_method_handler(
+                    servicer.DetectFraudComprehensive,
+                    request_deserializer=fraud__detection__pb2.ComprehensiveFraudDetectionRequest.FromString,
+                    response_serializer=fraud__detection__pb2.ComprehensiveFraudDetectionResponse.SerializeToString,
+            ),
+            'ClearData': grpc.unary_unary_rpc_method_handler(
+                    servicer.ClearData,
+                    request_deserializer=fraud__detection__pb2.ClearFraudDetectionDataRequest.FromString,
+                    response_serializer=fraud__detection__pb2.ClearFraudDetectionDataResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -49,7 +97,7 @@ class FraudDetectionService(object):
     """Missing associated documentation comment in .proto file."""
 
     @staticmethod
-    def DetectFraud(request,
+    def InitializeRequestData(request,
             target,
             options=(),
             channel_credentials=None,
@@ -59,8 +107,59 @@ class FraudDetectionService(object):
             wait_for_ready=None,
             timeout=None,
             metadata=None):
-        return grpc.experimental.unary_unary(request, target, '/frauddetection.FraudDetectionService/DetectFraud',
-            fraud__detection__pb2.FraudDetectionRequest.SerializeToString,
-            fraud__detection__pb2.FraudDetectionResponse.FromString,
+        return grpc.experimental.unary_unary(request, target, '/frauddetection.FraudDetectionService/InitializeRequestData',
+            fraud__detection__pb2.FraudDetectionData.SerializeToString,
+            fraud__detection__pb2.InitializeRequestDataResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DetectFraudQuick(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/frauddetection.FraudDetectionService/DetectFraudQuick',
+            fraud__detection__pb2.QuickFraudDetectionRequest.SerializeToString,
+            fraud__detection__pb2.QuickFraudDetectionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DetectFraudComprehensive(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/frauddetection.FraudDetectionService/DetectFraudComprehensive',
+            fraud__detection__pb2.ComprehensiveFraudDetectionRequest.SerializeToString,
+            fraud__detection__pb2.ComprehensiveFraudDetectionResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def ClearData(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/frauddetection.FraudDetectionService/ClearData',
+            fraud__detection__pb2.ClearFraudDetectionDataRequest.SerializeToString,
+            fraud__detection__pb2.ClearFraudDetectionDataResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

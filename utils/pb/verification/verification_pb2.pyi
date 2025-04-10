@@ -5,17 +5,45 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class ClearDataRequest(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class InitializeRequestDataResponse(_message.Message):
+    __slots__ = ("confirmation",)
+    CONFIRMATION_FIELD_NUMBER: _ClassVar[int]
+    confirmation: bool
+    def __init__(self, confirmation: bool = ...) -> None: ...
+
+class VerifyData(_message.Message):
+    __slots__ = ("orderId",)
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
+    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+
+class VerificationResponse(_message.Message):
+    __slots__ = ("status", "msg")
+    STATUS_FIELD_NUMBER: _ClassVar[int]
+    MSG_FIELD_NUMBER: _ClassVar[int]
+    status: bool
+    msg: str
+    def __init__(self, status: bool = ..., msg: _Optional[str] = ...) -> None: ...
+
 class VerificationRequest(_message.Message):
-    __slots__ = ("user", "orderData", "creditCard", "billing")
+    __slots__ = ("orderId", "user", "orderData", "creditCard", "billing")
+    ORDERID_FIELD_NUMBER: _ClassVar[int]
     USER_FIELD_NUMBER: _ClassVar[int]
     ORDERDATA_FIELD_NUMBER: _ClassVar[int]
     CREDITCARD_FIELD_NUMBER: _ClassVar[int]
     BILLING_FIELD_NUMBER: _ClassVar[int]
+    orderId: str
     user: User
     orderData: OrderData
     creditCard: CreditCard
     billing: BillingAddress
-    def __init__(self, user: _Optional[_Union[User, _Mapping]] = ..., orderData: _Optional[_Union[OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[CreditCard, _Mapping]] = ..., billing: _Optional[_Union[BillingAddress, _Mapping]] = ...) -> None: ...
+    def __init__(self, orderId: _Optional[str] = ..., user: _Optional[_Union[User, _Mapping]] = ..., orderData: _Optional[_Union[OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[CreditCard, _Mapping]] = ..., billing: _Optional[_Union[BillingAddress, _Mapping]] = ...) -> None: ...
 
 class User(_message.Message):
     __slots__ = ("name", "contact")
@@ -65,11 +93,3 @@ class BillingAddress(_message.Message):
     zip: str
     country: str
     def __init__(self, street: _Optional[str] = ..., city: _Optional[str] = ..., state: _Optional[str] = ..., zip: _Optional[str] = ..., country: _Optional[str] = ...) -> None: ...
-
-class VerificationResponse(_message.Message):
-    __slots__ = ("statusCode", "statusMsg")
-    STATUSCODE_FIELD_NUMBER: _ClassVar[int]
-    STATUSMSG_FIELD_NUMBER: _ClassVar[int]
-    statusCode: int
-    statusMsg: str
-    def __init__(self, statusCode: _Optional[int] = ..., statusMsg: _Optional[str] = ...) -> None: ...
