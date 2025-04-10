@@ -1,5 +1,6 @@
 import sys
 import os
+from typing import Iterable
 
 # This set of lines are needed to import the gRPC stubs.
 # The path of the stubs is relative to the current file, or absolute inside the container.
@@ -44,7 +45,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
      def VerifyOrderData(self, request: VerifyData, context) -> VerificationResponse:
           full_order: VerificationRequest = self.data_store[request.orderId]
           order_data: OrderData = full_order.orderData
-          items: list[OrderData.OrderItem] = order_data.orderItems
+          items: Iterable[OrderData.OrderItem] = order_data.orderItems
           discount_code: str = order_data.discountCode
           shipping_method: str = order_data.shippingMethod
 
@@ -66,7 +67,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
           if any(char.isdigit() for char in name):
              logger.info(f"validation for {request} has failed")
              return generate_failure_message("found numbers in name")
-          if not email.__contains__('@'):
+          if '@' not in email:
              logger.info(f"FAILURE: validation for {request} has failed")
              return generate_failure_message("invalid email")
           if len(creditcard.cvv) != 3:

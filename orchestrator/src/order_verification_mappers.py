@@ -14,13 +14,14 @@ def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
 # credit card
 # billing address
 def compose_verification_request(checkout_request: CheckoutRequest, orderId: str) -> VerificationRequest:
+    print(checkout_request)
     verification_request = VerificationRequest(
-        orderId = orderId,
+        orderId=orderId,
         user=User(**checkout_request['user']),
         orderData=OrderData(
             orderItems=compose_verificaiton_items(checkout_request['items']),
-            shippingMethod=checkout_request['shippingMethod'],
-            discountCode = checkout_request['discountCode']
+            shippingMethod=checkout_request.get('shippingMethod'),
+            discountCode=checkout_request.get('discountCode')
         ),
         creditCard=CreditCard(**checkout_request['creditCard']),
         billing=BillingAddress(**checkout_request['billingAddress'])
