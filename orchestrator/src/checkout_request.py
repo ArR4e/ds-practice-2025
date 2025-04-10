@@ -1,17 +1,21 @@
 from typing import TypedDict
 
+
 class User(TypedDict):
     name: str
     contact: str
+
 
 class CreditCard(TypedDict):
     number: str
     expirationDate: str
     cvv: str
 
+
 class Item(TypedDict):
     name: str
     quantity: int
+
 
 class BillingAddress(TypedDict):
     street: str
@@ -20,24 +24,29 @@ class BillingAddress(TypedDict):
     zip: str
     country: str
 
+
 class Device(TypedDict):
     name: str
     model: str
     os: str
 
+
 class Browser(TypedDict):
     name: str
     version: str
+
 
 class Book(TypedDict):
     bookId: str
     title: str
     author: str
 
+
 class OrderStatusResponse(TypedDict):
     orderId: str
     status: str
     suggestedBooks: list[Book]
+
 
 class CheckoutRequest(TypedDict):
     user: User
@@ -57,3 +66,12 @@ class CheckoutRequest(TypedDict):
     screenResolution: str
     referrer: str
     deviceLanguage: str
+
+
+class ErrorMessage(TypedDict):
+    code: str
+    message: str
+
+
+class ErrorResponse(TypedDict):
+    error: ErrorMessage
