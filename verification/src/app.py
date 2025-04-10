@@ -8,7 +8,8 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from utils.pb.verification.verification_pb2 import VerificationRequest
+from utils.pb.verification.verification_pb2 import VerificationRequest, VerificationResponse, \
+CreditCard, OrderData, VerifyData, ClearDataRequest
 import utils.pb.verification.verification_pb2 as verification_pb2
 import utils.pb.verification.verification_pb2_grpc as verification_pb2_grpc
 import grpc
@@ -35,15 +36,15 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
         self.data_store = {}
         self.shipping_methods = ['Standard', 'Express', 'Next-Day']
 
-     def InitializeRequestData(self, request: VerificationRequest, context) -> verification_pb2.VerificationResponse:
+     def InitializeRequestData(self, request: VerificationRequest, context) -> VerificationResponse:
           self.data_store[request.orderId] = request
           return generate_success_message()
      
 
-     def VerifyOrderData(self, request: verification_pb2.VerifyData, context) -> verification_pb2.VerificationResponse:
+     def VerifyOrderData(self, request: VerifyData, context) -> VerificationResponse:
           full_order: VerificationRequest = self.data_store[request.orderId]
-          order_data: verification_pb2.OrderData = full_order.orderData
-          items: list[verification_pb2.OrderData.OrderItem] = order_data.orderItems
+          order_data: OrderData = full_order.orderData
+          items: list[OrderData.OrderItem] = order_data.orderItems
           discount_code: str = order_data.discountCode
           shipping_method: str = order_data.shippingMethod
 
@@ -56,7 +57,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
                return generate_failure_message(message="bad shipping method")
           return generate_success_message(message='SUCCESS')
      
-     def VerifyUserData(self, request: verification_pb2.VerifyData, context):
+     def VerifyUserData(self, request: VerifyData, context) -> VerificationResponse:
           request: VerificationRequest = self.data_store[request.orderId]
           logger.info(f"verifing order from user {request.user}")
           name = request.user.name
@@ -77,11 +78,11 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
           logger.info(f"SUCCESS: validation for {request} was successful")
           return generate_success_message(message='SUCCESS')
         
-     def ClearData(self, request: verification_pb2.ClearDataRequest, context):
+     def ClearData(self, request: ClearDataRequest, context):
          self.data_store.pop(request.orderId)
          return generate_success_message(message='SUCCESS')
 
-def check_expiration_date(creditcard: verification_pb2.CreditCard) -> bool:
+def check_expiration_date(creditcard: CreditCard) -> bool:
      try:
           currenttime = datetime.datetime.now()
           expiration_date:list[str] = creditcard.expirationDate.split('/')
@@ -102,14 +103,14 @@ def server():
      logger.info(f'Verification service started on port {port}')
      server.wait_for_termination()
 
-def generate_success_message(message: str = "all good") -> verification_pb2.VerificationResponse:
+def generate_success_message(message: str = "all good") -> VerificationResponse:
      response = verification_pb2.VerificationResponse()
      response.status = True
      response.msg = message
      return response
 
-def generate_failure_message(message: str) -> verification_pb2.VerificationResponse:
-    response = verification_pb2.VerificationResponse()
+def generate_failure_message(message: str) -> VerificationResponse:
+    response = VerificationResponse()
     response.status = False
     response.msg = message
     return response

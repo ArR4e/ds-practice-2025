@@ -18,7 +18,7 @@ from fraud_detection_pb2 import QuickFraudDetectionRequest, QuickFraudDetectionR
     ClearFraudDetectionDataRequest, ClearFraudDetectionDataResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 
-from utils.pb.verification.verification_pb2 import VerificationResponse
+from utils.pb.verification.verification_pb2 import VerificationResponse, VerifyData
 from utils.pb.verification.verification_pb2_grpc import VerifyStub
 
 from suggestions_pb2 import BookSuggestionResponse, BookSuggestionRequest, SuggestionsData, \
@@ -119,7 +119,7 @@ async def initialize_verify_order_data(order_id: str, request: CheckoutRequest) 
     logger.debug("Initializing data in verification service")
     async with grpc.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel)
-        await stub.InitializeRequestData(compose_verification_request(request, order_id))
+        await stub.InitializeRequestData(compose_verification_request(checkout_request=request, orderId=order_id))
 
 async def initialize_detect_fraud_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in fraud detection service")
@@ -191,19 +191,23 @@ async def process_order(order_id: str):
 
 
 # Event a
-async def verify_order_data(order_id: str):
-    # TODO: [DS-VERIF-EVENTS] implement
+async def verify_order_data(order_id: str) -> VerificationResponse:
     logger.debug("Executing event: order data verification")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
-        ...
+        stub = VerifyStub(channel=channel)
+        return await stub.VerifyOrderData(
+            VerifyData(orderId=order_id)
+        )
 
 
 # Event b
 async def verify_user_data(order_id: str):
-    # TODO: [DS-VERIF-EVENTS] implement
     logger.debug("Executing event: user data verification")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
-        ...
+        stub = VerifyStub(channel=channel)
+        return await stub.VerifyUserData(
+            VerifyData(orderId=order_id)
+        )
 
 
 # Event c
@@ -280,14 +284,6 @@ def create_error_message(code: str, message: str):
             "message": message
         }
     }
-
-
-# TODO: Deprecated, scheduled for removal, left for reference
-def verify_order(request_data: CheckoutRequest) -> VerificationResponse:
-    logger.debug("Calling verification service")
-    with grpc.insecure_channel('order_verification:50052') as channel:
-        stub = VerifyStub(channel=channel)
-        return stub.CheckOrder(compose_verification_request(checkout_request=request_data))
 
 
 if __name__ == '__main__':
