@@ -8,10 +8,10 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from utils.pb.verification.verification_pb2 import VerificationRequest, VerificationResponse, \
+from verification_pb2 import VerificationRequest, VerificationResponse, \
 CreditCard, OrderData, VerifyData, ClearDataRequest
-import utils.pb.verification.verification_pb2 as verification_pb2
-import utils.pb.verification.verification_pb2_grpc as verification_pb2_grpc
+import verification_pb2 as verification_pb2
+import verification_pb2_grpc as verification_pb2_grpc
 import grpc
 import datetime
 from concurrent import futures
@@ -32,7 +32,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
      shipping_methods: list[str]
 
      def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.data_store = {}
         self.shipping_methods = ['Standard', 'Express', 'Next-Day']
 

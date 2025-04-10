@@ -30,7 +30,7 @@ class FraudDetectionServiceService(FraudDetectionServiceServicer):
     detection_data_store: dict[str, FraudDetectionData]
 
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.detection_data_store = {}
 
     def InitializeRequestData(self, request: FraudDetectionData, context) -> InitializeRequestDataResponse:

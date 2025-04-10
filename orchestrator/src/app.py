@@ -18,8 +18,8 @@ from fraud_detection_pb2 import QuickFraudDetectionRequest, QuickFraudDetectionR
     ClearFraudDetectionDataRequest, ClearFraudDetectionDataResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 
-from utils.pb.verification.verification_pb2 import VerificationResponse, VerifyData
-from utils.pb.verification.verification_pb2_grpc import VerifyStub
+from verification_pb2 import VerificationResponse, VerifyData
+from verification_pb2_grpc import VerifyStub
 
 from suggestions_pb2 import BookSuggestionResponse, BookSuggestionRequest, SuggestionsData, \
     ClearSuggestionsDataRequest, ClearSuggestionsDataResponse

@@ -37,23 +37,23 @@ class VerifyStub(object):
         self.InitializeRequestData = channel.unary_unary(
                 '/verification.Verify/InitializeRequestData',
                 request_serializer=verification__pb2.VerificationRequest.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString
-                )
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                _registered_method=True)
         self.VerifyOrderData = channel.unary_unary(
                 '/verification.Verify/VerifyOrderData',
                 request_serializer=verification__pb2.VerifyData.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString
-                )
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                _registered_method=True)
         self.VerifyUserData = channel.unary_unary(
                 '/verification.Verify/VerifyUserData',
                 request_serializer=verification__pb2.VerifyData.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString
-                )
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                _registered_method=True)
         self.ClearData = channel.unary_unary(
                 '/verification.Verify/ClearData',
                 request_serializer=verification__pb2.ClearDataRequest.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString
-                )
+                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                _registered_method=True)
 
 
 class VerifyServicer(object):

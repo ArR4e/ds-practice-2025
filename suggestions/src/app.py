@@ -49,7 +49,7 @@ class SuggestionsService(SuggestionsServiceServicer):
     order_data_store: dict[str, SuggestionsData]
 
     def __init__(self):
-        super().__init__(self)
+        super().__init__()
         self.order_data_store = {}
 
     def InitializeRequestData(self, request: SuggestionsData, context) -> InitializeRequestDataResponse:

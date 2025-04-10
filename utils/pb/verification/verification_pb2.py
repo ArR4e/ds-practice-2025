@@ -11,9 +11,9 @@ from google.protobuf import symbol_database as _symbol_database
 from google.protobuf.internal import builder as _builder
 _runtime_version.ValidateProtobufRuntimeVersion(
     _runtime_version.Domain.PUBLIC,
-    5,
-    29,
-    0,
+    4,
+    25,
+    2,
     '',
     'verification.proto'
 )
