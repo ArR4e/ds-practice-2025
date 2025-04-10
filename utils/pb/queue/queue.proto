@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package queue;
+
+import "verification/verification.proto";
+
+service Queue{
+    rpc Enqueue (verification.VerificationRequest) returns (OrderConfirmation);
+    rpc Dequeue (OrderRequest) returns (verification.VerificationRequest);
+}
+
+
+
+message OrderConfirmation{
+    bool status = 1;
+    string msg = 2;
+}
+
+message OrderRequest{
+}
