@@ -28,10 +28,12 @@ logging.config.dictConfig(config=config)
 class VerificationService(verification_pb2_grpc.VerifyServicer):
 
      data_store: dict[str, VerificationRequest]
+     shipping_methods: list[str]
 
      def __init__(self):
         super().__init__(self)
         self.data_store = {}
+        self.shipping_methods = ['Standard', 'Express', 'Next-Day']
 
      def InitializeRequestData(self, request: VerificationRequest, context) -> verification_pb2.VerificationResponse:
           self.data_store[request.orderId] = request
@@ -45,33 +47,39 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
           discount_code: str = order_data.discountCode
           shipping_method: str = order_data.shippingMethod
 
-          #TODO implement checks
-
+          if any(item.quantity < 1 for item in items):
+               return generate_failure_message(message='quantity cannot be less than 1')
+          #TODO implement discount code check from known codes
+          if discount_code.__eq__('testingerror'):
+               return generate_failure_message(message='FOR TESTING: failed at discount_code check')
+          if not self.shipping_methods.__contains__(shipping_method):
+               return generate_failure_message(message="bad shipping method")
           return generate_success_message(message='SUCCESS')
      
      def VerifyUserData(self, request: verification_pb2.VerifyData, context):
-          #TODO implement checks
-          return generate_success_message(message='SUCCESS')
-
-     def CheckOrder(self, request:VerificationRequest, context) -> verification_pb2.VerificationResponse:
-        logger.info(f"verifing order from user {request.user}")
-        name:str = request.user.name
-        email:str = request.user.contact
-        creditcard = request.creditCard
-        if any(char.isdigit() for char in name):
-             logger.info(f"FAILURE: validation for {request} has failed")
+          request: VerificationRequest = self.data_store[request.orderId]
+          logger.info(f"verifing order from user {request.user}")
+          name = request.user.name
+          email = request.user.contact
+          creditcard = request.creditCard
+          if any(char.isdigit() for char in name):
+             logger.info(f"validation for {request} has failed")
              return generate_failure_message("found numbers in name")
-        if not email.__contains__('@'):
+          if not email.__contains__('@'):
              logger.info(f"FAILURE: validation for {request} has failed")
              return generate_failure_message("invalid email")
-        if len(creditcard.cvv) != 3:
+          if len(creditcard.cvv) != 3:
               logger.info(f"FAILURE: validation for {request} has failed")
               return generate_failure_message("invalid CVV")
-        if not check_expiration_date(creditcard):
+          if not check_expiration_date(creditcard):
              logger.info(f"FAILURE: validation for {request} has failed")
              return generate_failure_message("invalid expiration date")
-        logger.info(f"SUCCESS: validation for {request} was successful")
-        return generate_success_message()
+          logger.info(f"SUCCESS: validation for {request} was successful")
+          return generate_success_message(message='SUCCESS')
+        
+     def ClearData(self, request: verification_pb2.ClearDataRequest, context):
+         self.data_store.pop(request.orderId)
+         return generate_success_message(message='SUCCESS')
 
 def check_expiration_date(creditcard: verification_pb2.CreditCard) -> bool:
      try:
