@@ -1,5 +1,5 @@
 from checkout_request import CheckoutRequest, Item
-from utils.pb.verification.verification_pb2 import VerificationRequest, User, OrderData, CreditCard, BillingAddress
+from verification_pb2 import VerificationRequest, User, OrderData, CreditCard, BillingAddress
 
 def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
     return [*map(lambda item: OrderData.OrderItem(**item), items)]

@@ -8,7 +8,7 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/suggestions'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from suggestions_pb2 import SuggestionsData, InitializeRequestDataResponse, \
+from suggestions_pb2 import SuggestionsData, InitializeResponse, \
     BookSuggestionRequest, BookSuggestionResponse, \
     ClearSuggestionsDataRequest, ClearSuggestionsDataResponse
 from suggestions_pb2_grpc import add_SuggestionsServiceServicer_to_server, SuggestionsServiceServicer
@@ -52,9 +52,9 @@ class SuggestionsService(SuggestionsServiceServicer):
         super().__init__()
         self.order_data_store = {}
 
-    def InitializeRequestData(self, request: SuggestionsData, context) -> InitializeRequestDataResponse:
+    def InitializeRequestData(self, request: SuggestionsData, context) -> InitializeResponse:
         self.order_data_store[request.orderId] = request
-        return InitializeRequestDataResponse()
+        return InitializeResponse()
 
     def SuggestBooks(self, request: BookSuggestionRequest, context) -> BookSuggestionResponse:
         order_data = self.order_data_store[request.orderId]

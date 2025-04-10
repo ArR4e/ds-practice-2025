@@ -15,7 +15,7 @@ class SuggestionsData(_message.Message):
     boughtBookIds: _containers.RepeatedScalarFieldContainer[str]
     def __init__(self, orderId: _Optional[str] = ..., userId: _Optional[str] = ..., boughtBookIds: _Optional[_Iterable[str]] = ...) -> None: ...
 
-class InitializeRequestDataResponse(_message.Message):
+class InitializeResponse(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...
 

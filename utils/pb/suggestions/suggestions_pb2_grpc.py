@@ -17,7 +17,7 @@ class SuggestionsServiceStub(object):
         self.InitializeRequestData = channel.unary_unary(
                 '/frauddetection.SuggestionsService/InitializeRequestData',
                 request_serializer=suggestions__pb2.SuggestionsData.SerializeToString,
-                response_deserializer=suggestions__pb2.InitializeRequestDataResponse.FromString,
+                response_deserializer=suggestions__pb2.InitializeResponse.FromString,
                 )
         self.SuggestBooks = channel.unary_unary(
                 '/frauddetection.SuggestionsService/SuggestBooks',
@@ -58,7 +58,7 @@ def add_SuggestionsServiceServicer_to_server(servicer, server):
             'InitializeRequestData': grpc.unary_unary_rpc_method_handler(
                     servicer.InitializeRequestData,
                     request_deserializer=suggestions__pb2.SuggestionsData.FromString,
-                    response_serializer=suggestions__pb2.InitializeRequestDataResponse.SerializeToString,
+                    response_serializer=suggestions__pb2.InitializeResponse.SerializeToString,
             ),
             'SuggestBooks': grpc.unary_unary_rpc_method_handler(
                     servicer.SuggestBooks,
@@ -93,7 +93,7 @@ class SuggestionsService(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/frauddetection.SuggestionsService/InitializeRequestData',
             suggestions__pb2.SuggestionsData.SerializeToString,
-            suggestions__pb2.InitializeRequestDataResponse.FromString,
+            suggestions__pb2.InitializeResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 
