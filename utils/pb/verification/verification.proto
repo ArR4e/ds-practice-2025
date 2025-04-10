@@ -29,10 +29,11 @@ message VerificationResponse{
 
 
 message VerificationRequest{
-    User user = 1;
-    OrderData orderData = 2;
-    CreditCard creditCard = 3;
-    BillingAddress billing = 4;
+    string orderId = 1;
+    User user = 2;
+    OrderData orderData = 3;
+    CreditCard creditCard = 4;
+    BillingAddress billing = 5;
 }
 
 message User {

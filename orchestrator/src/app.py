@@ -17,8 +17,10 @@ from fraud_detection_pb2 import QuickFraudDetectionRequest, QuickFraudDetectionR
     ComprehensiveFraudDetectionRequest, ComprehensiveFraudDetectionResponse, \
     ClearFraudDetectionDataRequest, ClearFraudDetectionDataResponse
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
-from verification_pb2 import VerificationResponse
-from verification_pb2_grpc import VerifyStub
+
+from utils.pb.verification.verification_pb2 import VerificationResponse
+from utils.pb.verification.verification_pb2_grpc import VerifyStub
+
 from suggestions_pb2 import BookSuggestionResponse, BookSuggestionRequest, SuggestionsData, \
     ClearSuggestionsDataRequest, ClearSuggestionsDataResponse
 from suggestions_pb2_grpc import SuggestionsServiceStub
@@ -115,8 +117,9 @@ async def initialize_order_data(order_id: str, request: CheckoutRequest):
 
 async def initialize_verify_order_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in verification service")
-    # TODO: [DS-VERIF-EVENTS] implement
-
+    async with grpc.insecure_channel('order_verification:50052') as channel:
+        stub = VerifyStub(channel)
+        await stub.InitializeRequestData(compose_verification_request(request, order_id))
 
 async def initialize_detect_fraud_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in fraud detection service")

@@ -1,5 +1,5 @@
 from checkout_request import CheckoutRequest, Item
-from verification_pb2 import VerificationRequest, User, OrderData, CreditCard, BillingAddress
+from utils.pb.verification.verification_pb2 import VerificationRequest, User, OrderData, CreditCard, BillingAddress
 
 def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
     return [*map(lambda item: OrderData.OrderItem(**item), items)]
@@ -13,8 +13,9 @@ def compose_verificaiton_items(items: list[Item]) -> list[OrderData.OrderItem]:
 #     shipping method
 # credit card
 # billing address
-def compose_verification_request(checkout_request: CheckoutRequest) -> VerificationRequest:
+def compose_verification_request(checkout_request: CheckoutRequest, orderId: str) -> VerificationRequest:
     verification_request = VerificationRequest(
+        orderId = orderId,
         user=User(**checkout_request['user']),
         orderData=OrderData(
             orderItems=compose_verificaiton_items(checkout_request['items']),

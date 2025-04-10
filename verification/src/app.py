@@ -8,9 +8,9 @@ FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
 sys.path.insert(0, fraud_detection_grpc_path)
 
-from verification_pb2 import VerificationRequest
-import verification_pb2
-import verification_pb2_grpc
+from utils.pb.verification.verification_pb2 import VerificationRequest
+import utils.pb.verification.verification_pb2 as verification_pb2
+import utils.pb.verification.verification_pb2_grpc as verification_pb2_grpc
 import grpc
 import datetime
 from concurrent import futures
@@ -27,7 +27,33 @@ logging.config.dictConfig(config=config)
 
 class VerificationService(verification_pb2_grpc.VerifyServicer):
 
-    def CheckOrder(self, request:VerificationRequest, context) -> verification_pb2.VerificationResponse:
+     data_store: dict[str, VerificationRequest]
+
+     def __init__(self):
+        super().__init__(self)
+        self.data_store = {}
+
+     def InitializeRequestData(self, request: VerificationRequest, context) -> verification_pb2.VerificationResponse:
+          self.data_store[request.orderId] = request
+          return generate_success_message()
+     
+
+     def VerifyOrderData(self, request: verification_pb2.VerifyData, context) -> verification_pb2.VerificationResponse:
+          full_order: VerificationRequest = self.data_store[request.orderId]
+          order_data: verification_pb2.OrderData = full_order.orderData
+          items: list[verification_pb2.OrderData.OrderItem] = order_data.orderItems
+          discount_code: str = order_data.discountCode
+          shipping_method: str = order_data.shippingMethod
+
+          #TODO implement checks
+
+          return generate_success_message(message='SUCCESS')
+     
+     def VerifyUserData(self, request: verification_pb2.VerifyData, context):
+          #TODO implement checks
+          return generate_success_message(message='SUCCESS')
+
+     def CheckOrder(self, request:VerificationRequest, context) -> verification_pb2.VerificationResponse:
         logger.info(f"verifing order from user {request.user}")
         name:str = request.user.name
         email:str = request.user.contact
@@ -47,7 +73,7 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
         logger.info(f"SUCCESS: validation for {request} was successful")
         return generate_success_message()
 
-def check_expiration_date(creditcard: VerificationRequest.creditCard) -> bool:
+def check_expiration_date(creditcard: verification_pb2.CreditCard) -> bool:
      try:
           currenttime = datetime.datetime.now()
           expiration_date:list[str] = creditcard.expirationDate.split('/')
@@ -70,14 +96,14 @@ def server():
 
 def generate_success_message(message: str = "all good") -> verification_pb2.VerificationResponse:
      response = verification_pb2.VerificationResponse()
-     response.statusCode = 0
-     response.statusMsg = message
+     response.status = True
+     response.msg = message
      return response
 
 def generate_failure_message(message: str) -> verification_pb2.VerificationResponse:
     response = verification_pb2.VerificationResponse()
-    response.statusCode = 1
-    response.statusMsg = message
+    response.status = False
+    response.msg = message
     return response
 
 if __name__ == '__main__':
