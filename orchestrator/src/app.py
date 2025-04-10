@@ -1,6 +1,6 @@
-import asyncio
 import sys
 import os
+from cgi import print_form
 
 # This set of lines are needed to import the gRPC stubs.
 # The path of the stubs is relative to the current file, or absolute inside the container.
@@ -14,25 +14,23 @@ suggestions_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/su
 sys.path.insert(0, suggestions_grpc_path)
 
 from fraud_detection_pb2 import QuickFraudDetectionRequest, QuickFraudDetectionResponse, \
-    ComprehensiveFraudDetectionRequest, ComprehensiveFraudDetectionResponse, \
-    ClearFraudDetectionDataRequest, ClearFraudDetectionDataResponse
+    ComprehensiveFraudDetectionRequest, ComprehensiveFraudDetectionResponse, ClearFraudDetectionDataRequest
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
 
-from verification_pb2 import VerificationResponse, VerifyData
+from verification_pb2 import VerificationResponse, VerifyData, ClearDataRequest
 from verification_pb2_grpc import VerifyStub
 
 from suggestions_pb2 import BookSuggestionResponse, BookSuggestionRequest, SuggestionsData, \
-    ClearSuggestionsDataRequest, ClearSuggestionsDataResponse
+    ClearSuggestionsDataRequest
 from suggestions_pb2_grpc import SuggestionsServiceStub
 
 from checkout_request import CheckoutRequest, OrderStatusResponse, Book
 from fraud_detection_mappers import compose_fraud_detection_data
 from order_verification_mappers import compose_verification_request
-
-from contextlib import contextmanager
+from error_event import ErrorEvent
+from contextlib import asynccontextmanager
 from random import randint
-from asyncio import gather, create_task
-import hashlib
+from asyncio import gather, TaskGroup
 import grpc
 import logging.config
 from pathlib import Path
@@ -80,23 +78,27 @@ async def checkout() -> [OrderStatusResponse, int]:
     logger.debug(f"Request Data: {request_data}")
 
     # TODO: [DS-LOGS] add order id to context + add log filter
-    with order_data_context_manager() as order_id:
-        await initialize_order_data(order_id, request_data)
-        suggested_books = await process_order(order_id)
+    try:
+        async with order_data_context_manager() as order_id:
+            await initialize_order_data(order_id, request_data)
+            suggested_books = await process_order(order_id)
 
-        logger.debug(f"Generated order_id {order_id}")
-        order_status_response: OrderStatusResponse = {
-            'orderId': order_id,
-            'status': 'Order Approved',
-            'suggestedBooks': suggested_books
-        }
-        logger.info(f"Confirmed purchace for order: {order_id}")
+            logger.debug(f"Generated order_id {order_id}")
+            order_status_response: OrderStatusResponse = {
+                'orderId': order_id,
+                'status': 'Order Approved',
+                'suggestedBooks': suggested_books
+            }
+            logger.info(f"Confirmed purchace for order: {order_id}")
 
-        # TODO: [DS-QUEUE] Queue For Processing
-        return order_status_response, 200
+            # TODO: [DS-QUEUE] Queue For Processing
+            return order_status_response, 200
+    except* ErrorEvent as eg:
+       error_message = eg.exceptions[0].message
+    return {"error": error_message}, 400
 
 
-@contextmanager
+@asynccontextmanager
 async def order_data_context_manager():
     order_id = str(uuid4())
     try:
@@ -107,7 +109,7 @@ async def order_data_context_manager():
 
 async def initialize_order_data(order_id: str, request: CheckoutRequest):
     logger.info("Initializing order data in services")
-    async with asyncio.TaskGroup as tg:
+    async with TaskGroup() as tg:
         await gather(
             tg.create_task(initialize_verify_order_data(order_id, request)),
             tg.create_task(initialize_detect_fraud_data(order_id, request)),
@@ -117,9 +119,10 @@ async def initialize_order_data(order_id: str, request: CheckoutRequest):
 
 async def initialize_verify_order_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in verification service")
-    async with grpc.insecure_channel('order_verification:50052') as channel:
+    async with grpc.aio.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel)
         await stub.InitializeRequestData(compose_verification_request(checkout_request=request, orderId=order_id))
+
 
 async def initialize_detect_fraud_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in fraud detection service")
@@ -158,15 +161,19 @@ async def process_order(order_id: str):
     event e runs only after event d and c (d -> e, c -> e)
     """
     logger.info(f"Processing order with id {order_id}")
-    with asyncio.TaskGroup as tg:
+    async with TaskGroup() as tg:
         # a || b
         order_data_verification = tg.create_task(verify_order_data(order_id))
         user_data_verification = tg.create_task(verify_user_data(order_id))
 
-        order_data_verification_response = await order_data_verification  # a -> c
+        order_data_verification_response: VerificationResponse = await order_data_verification  # a -> c
+        if order_data_verification_response.status != 0:
+            raise_error_event("FAILED_ORDER_VERIFICATION", order_data_verification_response.msg)
         quick_fraud_detection = tg.create_task(detect_fraud_quick(order_id))
 
-        user_data_verification_response = await user_data_verification  # a -> d, b -> d
+        user_data_verification_response: VerificationResponse = await user_data_verification  # a -> d, b -> d
+        if user_data_verification_response.status != 0:
+            raise_error_event("FAILED_USER_VERIFICATION", order_data_verification_response.msg)
         comprehensive_fraud_detection = tg.create_task(detect_fraud_comprehensive(order_id))
 
         # d || c
@@ -174,20 +181,17 @@ async def process_order(order_id: str):
             quick_fraud_detection,
             comprehensive_fraud_detection
         )
-        # TODO: needs rework
-        #   Easiest is to do method create_error_event that raises custom exception (to pass data through),
-        #   then try-catch it in checkout
-        # if fraud_detection_response.isFraudulent:
-        #     return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
-        # if fraud_detection_response.isFraudulent:
-        #     return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
-        # if verification_response.statusCode != 0:
-        #     return create_error_message("FAILED_VERIFICATION", verification_response.statusMsg), 400
-        # if fraud_detection_response.isFraudulent:
-        #     return create_error_message("FRADULENT_REQUEST", fraud_detection_response.reason), 400
+        if quick_fraud_detection_response.isFraudulent:
+            raise_error_event("FRADULENT_REQUEST", quick_fraud_detection_response.reason)
+        if comprehensive_fraud_detection_response.isFraudulent:
+            raise_error_event("FRADULENT_REQUEST", comprehensive_fraud_detection_response.reason)
 
         # d -> e, c -> e
         return await suggest_books(order_id)
+
+
+def raise_error_event(code: str, message: str) -> None:
+    raise ErrorEvent({"code": code, "message": message})
 
 
 # Event a
@@ -241,6 +245,14 @@ async def suggest_books(order_id: str) -> list[Book]:
         return [*map(to_book, response.suggestedBooks)]
 
 
+def to_book(suggested_book: BookSuggestionResponse.SuggestedBook) -> Book:
+    return {
+        'bookId': suggested_book.bookId,
+        'title': suggested_book.title,
+        'author': suggested_book.author
+    }
+
+
 async def clear_order_data(order_id: str):
     await gather(
         clear_fraud_detection_data(order_id),
@@ -253,13 +265,14 @@ async def clear_fraud_detection_data(order_id: str) -> None:
     logger.debug("Executing event: book suggestion")
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
-        await stub.ClearData(ClearSuggestionsDataRequest(orderId=order_id))
+        await stub.ClearData(ClearFraudDetectionDataRequest(orderId=order_id))
 
 
 async def clear_verification_data(order_id: str) -> None:
     logger.debug("Removing data from transaction verification ")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
-        ...
+        stub = VerifyStub(channel)
+        await stub.ClearData(ClearDataRequest(orderId=order_id))
 
 
 async def clear_suggestions_data(order_id: str) -> None:
@@ -267,23 +280,6 @@ async def clear_suggestions_data(order_id: str) -> None:
     async with grpc.aio.insecure_channel('book_suggestions:50053') as channel:
         stub = SuggestionsServiceStub(channel)
         await stub.ClearData(ClearSuggestionsDataRequest(orderId=order_id))
-
-
-def to_book(suggested_book: BookSuggestionResponse.SuggestedBook) -> Book:
-    return {
-        'bookId': suggested_book.bookId,
-        'title': suggested_book.title,
-        'author': suggested_book.author
-    }
-
-
-def create_error_message(code: str, message: str):
-    return {
-        "error": {
-            "code": code,
-            "message": message
-        }
-    }
 
 
 if __name__ == '__main__':
