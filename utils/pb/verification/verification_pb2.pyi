@@ -1,3 +1,4 @@
+import common_pb2 as _common_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -6,10 +7,16 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class ClearDataRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
+
+class ClearDataResponse(_message.Message):
+    __slots__ = ()
+    def __init__(self) -> None: ...
 
 class InitializeRequestDataResponse(_message.Message):
     __slots__ = ("confirmation",)
@@ -18,18 +25,22 @@ class InitializeRequestDataResponse(_message.Message):
     def __init__(self, confirmation: bool = ...) -> None: ...
 
 class VerifyData(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class VerificationResponse(_message.Message):
-    __slots__ = ("status", "msg")
+    __slots__ = ("status", "msg", "vectorClock")
     STATUS_FIELD_NUMBER: _ClassVar[int]
     MSG_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     status: bool
     msg: str
-    def __init__(self, status: bool = ..., msg: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, status: bool = ..., msg: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class VerificationRequest(_message.Message):
     __slots__ = ("orderId", "user", "orderData", "creditCard", "billing")

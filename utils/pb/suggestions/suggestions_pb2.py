@@ -12,29 +12,30 @@ from google.protobuf.internal import builder as _builder
 _sym_db = _symbol_database.Default()
 
 
+import common_pb2 as common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11suggestions.proto\x12\x0e\x66rauddetection\"I\n\x0fSuggestionsData\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12\x0e\n\x06userId\x18\x02 \x01(\t\x12\x15\n\rboughtBookIds\x18\x03 \x03(\t\"\x14\n\x12InitializeResponse\"(\n\x15\x42ookSuggestionRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\"\xa6\x01\n\x16\x42ookSuggestionResponse\x12L\n\x0esuggestedBooks\x18\x01 \x03(\x0b\x32\x34.frauddetection.BookSuggestionResponse.SuggestedBook\x1a>\n\rSuggestedBook\x12\x0e\n\x06\x62ookId\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\".\n\x1b\x43learSuggestionsDataRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\"\x1e\n\x1c\x43learSuggestionsDataResponse2\xb9\x02\n\x12SuggestionsService\x12\\\n\x15InitializeRequestData\x12\x1f.frauddetection.SuggestionsData\x1a\".frauddetection.InitializeResponse\x12]\n\x0cSuggestBooks\x12%.frauddetection.BookSuggestionRequest\x1a&.frauddetection.BookSuggestionResponse\x12\x66\n\tClearData\x12+.frauddetection.ClearSuggestionsDataRequest\x1a,.frauddetection.ClearSuggestionsDataResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11suggestions.proto\x12\x0e\x66rauddetection\x1a\x0c\x63ommon.proto\"I\n\x0fSuggestionsData\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12\x0e\n\x06userId\x18\x02 \x01(\t\x12\x15\n\rboughtBookIds\x18\x03 \x03(\t\"\x14\n\x12InitializeResponse\"R\n\x15\x42ookSuggestionRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12(\n\x0bvectorClock\x18\x02 \x01(\x0b\x32\x13.common.VectorClock\"\xd0\x01\n\x16\x42ookSuggestionResponse\x12L\n\x0esuggestedBooks\x18\x01 \x03(\x0b\x32\x34.frauddetection.BookSuggestionResponse.SuggestedBook\x12(\n\x0bvectorClock\x18\x02 \x01(\x0b\x32\x13.common.VectorClock\x1a>\n\rSuggestedBook\x12\x0e\n\x06\x62ookId\x18\x01 \x01(\t\x12\r\n\x05title\x18\x02 \x01(\t\x12\x0e\n\x06\x61uthor\x18\x03 \x01(\t\"X\n\x1b\x43learSuggestionsDataRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12(\n\x0bvectorClock\x18\x02 \x01(\x0b\x32\x13.common.VectorClock\"\x1e\n\x1c\x43learSuggestionsDataResponse2\xb9\x02\n\x12SuggestionsService\x12\\\n\x15InitializeRequestData\x12\x1f.frauddetection.SuggestionsData\x1a\".frauddetection.InitializeResponse\x12]\n\x0cSuggestBooks\x12%.frauddetection.BookSuggestionRequest\x1a&.frauddetection.BookSuggestionResponse\x12\x66\n\tClearData\x12+.frauddetection.ClearSuggestionsDataRequest\x1a,.frauddetection.ClearSuggestionsDataResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'suggestions_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_SUGGESTIONSDATA']._serialized_start=37
-  _globals['_SUGGESTIONSDATA']._serialized_end=110
-  _globals['_INITIALIZERESPONSE']._serialized_start=112
-  _globals['_INITIALIZERESPONSE']._serialized_end=132
-  _globals['_BOOKSUGGESTIONREQUEST']._serialized_start=134
-  _globals['_BOOKSUGGESTIONREQUEST']._serialized_end=174
-  _globals['_BOOKSUGGESTIONRESPONSE']._serialized_start=177
-  _globals['_BOOKSUGGESTIONRESPONSE']._serialized_end=343
-  _globals['_BOOKSUGGESTIONRESPONSE_SUGGESTEDBOOK']._serialized_start=281
-  _globals['_BOOKSUGGESTIONRESPONSE_SUGGESTEDBOOK']._serialized_end=343
-  _globals['_CLEARSUGGESTIONSDATAREQUEST']._serialized_start=345
-  _globals['_CLEARSUGGESTIONSDATAREQUEST']._serialized_end=391
-  _globals['_CLEARSUGGESTIONSDATARESPONSE']._serialized_start=393
-  _globals['_CLEARSUGGESTIONSDATARESPONSE']._serialized_end=423
-  _globals['_SUGGESTIONSSERVICE']._serialized_start=426
-  _globals['_SUGGESTIONSSERVICE']._serialized_end=739
+  _globals['_SUGGESTIONSDATA']._serialized_start=51
+  _globals['_SUGGESTIONSDATA']._serialized_end=124
+  _globals['_INITIALIZERESPONSE']._serialized_start=126
+  _globals['_INITIALIZERESPONSE']._serialized_end=146
+  _globals['_BOOKSUGGESTIONREQUEST']._serialized_start=148
+  _globals['_BOOKSUGGESTIONREQUEST']._serialized_end=230
+  _globals['_BOOKSUGGESTIONRESPONSE']._serialized_start=233
+  _globals['_BOOKSUGGESTIONRESPONSE']._serialized_end=441
+  _globals['_BOOKSUGGESTIONRESPONSE_SUGGESTEDBOOK']._serialized_start=379
+  _globals['_BOOKSUGGESTIONRESPONSE_SUGGESTEDBOOK']._serialized_end=441
+  _globals['_CLEARSUGGESTIONSDATAREQUEST']._serialized_start=443
+  _globals['_CLEARSUGGESTIONSDATAREQUEST']._serialized_end=531
+  _globals['_CLEARSUGGESTIONSDATARESPONSE']._serialized_start=533
+  _globals['_CLEARSUGGESTIONSDATARESPONSE']._serialized_end=563
+  _globals['_SUGGESTIONSSERVICE']._serialized_start=566
+  _globals['_SUGGESTIONSSERVICE']._serialized_end=879
 # @@protoc_insertion_point(module_scope)

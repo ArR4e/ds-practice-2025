@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package frauddetection;
+import "common.proto";
 
 service FraudDetectionService {
   rpc InitializeRequestData (FraudDetectionData) returns (InitializeRequestDataResponse);
@@ -48,7 +49,7 @@ message FraudDetectionData {
     Device device = 1;
     Browser browser = 2;
     string screenResolution = 3;
-    string referrer  = 4;
+    string referrer = 4;
   }
   string orderId = 1;
   User user = 2;
@@ -56,31 +57,38 @@ message FraudDetectionData {
   CreditCard creditCard = 4;
   BillingAddress billingAddress = 5;
   Telemetry telemetry = 6;
+  common.VectorClock vectorClock = 7;
 }
 
 message InitializeRequestDataResponse {
+  common.VectorClock vectorClock = 1;
 }
 
 message QuickFraudDetectionRequest {
   string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message QuickFraudDetectionResponse {
   bool isFraudulent = 1;
   string reason = 2;
+  common.VectorClock vectorClock = 3;
 }
 
 message ComprehensiveFraudDetectionRequest {
   string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message ComprehensiveFraudDetectionResponse {
   bool isFraudulent = 1;
   string reason = 2;
+  common.VectorClock vectorClock = 3;
 }
 
 message ClearFraudDetectionDataRequest {
   string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message ClearFraudDetectionDataResponse {

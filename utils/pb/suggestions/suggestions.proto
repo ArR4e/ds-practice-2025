@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package frauddetection;
+import "common.proto";
 
 service SuggestionsService {
   rpc InitializeRequestData (SuggestionsData) returns (InitializeResponse);
@@ -19,21 +20,23 @@ message InitializeResponse {
 
 message BookSuggestionRequest {
   string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message BookSuggestionResponse {
   message SuggestedBook {
-      string bookId = 1;
-      string title = 2;
-      string author = 3;
+    string bookId = 1;
+    string title = 2;
+    string author = 3;
   }
   repeated SuggestedBook suggestedBooks = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message ClearSuggestionsDataRequest {
   string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
 message ClearSuggestionsDataResponse {
-
 }

@@ -1,11 +1,13 @@
+import logging
 import sys
 import os
-from cgi import print_form
 
 # This set of lines are needed to import the gRPC stubs.
 # The path of the stubs is relative to the current file, or absolute inside the container.
 # Change these lines only if strictly needed.
 FILE = __file__ if '__file__' in globals() else os.getenv("PYTHONFILE", "")
+common_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/common'))
+sys.path.insert(0, common_grpc_path)
 fraud_detection_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/fraud_detection'))
 sys.path.insert(0, fraud_detection_grpc_path)
 verification_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/verification'))
@@ -13,13 +15,12 @@ sys.path.insert(0, verification_grpc_path)
 suggestions_grpc_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/suggestions'))
 sys.path.insert(0, suggestions_grpc_path)
 
+from common_pb2 import VectorClock
 from fraud_detection_pb2 import QuickFraudDetectionRequest, QuickFraudDetectionResponse, \
     ComprehensiveFraudDetectionRequest, ComprehensiveFraudDetectionResponse, ClearFraudDetectionDataRequest
 from fraud_detection_pb2_grpc import FraudDetectionServiceStub
-
 from verification_pb2 import VerificationResponse, VerifyData, ClearDataRequest
 from verification_pb2_grpc import VerifyStub
-
 from suggestions_pb2 import BookSuggestionResponse, BookSuggestionRequest, SuggestionsData, \
     ClearSuggestionsDataRequest
 from suggestions_pb2_grpc import SuggestionsServiceStub
@@ -30,12 +31,14 @@ from order_verification_mappers import compose_verification_request
 from error_event import ErrorEvent
 from contextlib import asynccontextmanager
 from random import randint
-from asyncio import gather, TaskGroup
+from asyncio import gather, Lock, TaskGroup
 import grpc
 import logging.config
 from pathlib import Path
 from json import load
 from uuid import uuid4
+from contextvars import ContextVar
+from typing import Iterable
 
 global logger
 logger = logging.getLogger("orchestrator_logger")
@@ -56,6 +59,8 @@ import json
 app = Flask(__name__)
 # Enable CORS for the app.
 CORS(app, resources={r'/*': {'origins': '*'}})
+vector_clock = ContextVar("vector_clock")
+vector_clock_lock = ContextVar("vector_clock_lock")
 
 
 # TODO when nothing to do:
@@ -76,14 +81,11 @@ async def checkout() -> [OrderStatusResponse, int]:
     request_data: CheckoutRequest = json.loads(request.data)
     logger.info("Serving checkout request")
     logger.debug(f"Request Data: {request_data}")
-
-    # TODO: [DS-LOGS] add order id to context + add log filter
     try:
         async with order_data_context_manager() as order_id:
             await initialize_order_data(order_id, request_data)
             suggested_books = await process_order(order_id)
 
-            logger.debug(f"Generated order_id {order_id}")
             order_status_response: OrderStatusResponse = {
                 'orderId': order_id,
                 'status': 'Order Approved',
@@ -94,13 +96,19 @@ async def checkout() -> [OrderStatusResponse, int]:
             # TODO: [DS-QUEUE] Queue For Processing
             return order_status_response, 200
     except* ErrorEvent as eg:
-       error_message = eg.exceptions[0].message
+        error_message = eg.exceptions[0].message
+        logger.info(f"Error event raised: {error_message}, responding with 400 code")
     return {"error": error_message}, 400
 
 
 @asynccontextmanager
 async def order_data_context_manager():
     order_id = str(uuid4())
+    logger.debug(f"Generated order_id: {order_id}")
+
+    vector_clock_lock.set(Lock())
+    # currently we have three services
+    vector_clock.set([0, 0, 0])
     try:
         yield order_id
     finally:
@@ -127,7 +135,7 @@ async def initialize_verify_order_data(order_id: str, request: CheckoutRequest) 
 async def initialize_detect_fraud_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in fraud detection service")
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
-        stub = FraudDetectionServiceStub(channel)
+        stub = FraudDetectionServiceStub(channel)  # TODO: pass vc
         await stub.InitializeRequestData(compose_fraud_detection_data(order_id, request))
 
 
@@ -167,13 +175,13 @@ async def process_order(order_id: str):
         user_data_verification = tg.create_task(verify_user_data(order_id))
 
         order_data_verification_response: VerificationResponse = await order_data_verification  # a -> c
-        if order_data_verification_response.status != 0:
+        if not order_data_verification_response.status:
             raise_error_event("FAILED_ORDER_VERIFICATION", order_data_verification_response.msg)
         quick_fraud_detection = tg.create_task(detect_fraud_quick(order_id))
 
         user_data_verification_response: VerificationResponse = await user_data_verification  # a -> d, b -> d
-        if user_data_verification_response.status != 0:
-            raise_error_event("FAILED_USER_VERIFICATION", order_data_verification_response.msg)
+        if not user_data_verification_response.status:
+            raise_error_event("FAILED_USER_VERIFICATION", user_data_verification_response.msg)
         comprehensive_fraud_detection = tg.create_task(detect_fraud_comprehensive(order_id))
 
         # d || c
@@ -199,19 +207,23 @@ async def verify_order_data(order_id: str) -> VerificationResponse:
     logger.debug("Executing event: order data verification")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel=channel)
-        return await stub.VerifyOrderData(
-            VerifyData(orderId=order_id)
+        response: VerificationResponse = await stub.VerifyOrderData(
+            VerifyData(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock()))
         )
+        await update_vector_clock("order data verification", response.vectorClock)
+        return response
 
 
 # Event b
-async def verify_user_data(order_id: str):
+async def verify_user_data(order_id: str) -> VerificationResponse:
     logger.debug("Executing event: user data verification")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel=channel)
-        return await stub.VerifyUserData(
-            VerifyData(orderId=order_id)
+        response: VerificationResponse = await stub.VerifyUserData(
+            VerifyData(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock()))
         )
+        await update_vector_clock("user data verification", response.vectorClock)
+        return response
 
 
 # Event c
@@ -220,8 +232,9 @@ async def detect_fraud_quick(order_id: str) -> QuickFraudDetectionResponse:
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
         response: QuickFraudDetectionResponse = await stub.DetectFraudQuick(
-            QuickFraudDetectionRequest(orderId=order_id)
+            QuickFraudDetectionRequest(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock()))
         )
+        await update_vector_clock("quick fraud detection", response.vectorClock)
         return response
 
 
@@ -231,8 +244,10 @@ async def detect_fraud_comprehensive(order_id: str) -> ComprehensiveFraudDetecti
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
         response: ComprehensiveFraudDetectionResponse = await stub.DetectFraudComprehensive(
-            ComprehensiveFraudDetectionRequest(orderId=order_id)
+            ComprehensiveFraudDetectionRequest(orderId=order_id,
+                                               vectorClock=VectorClock(clock=await get_vector_clock()))
         )
+        await update_vector_clock("comprehensive fraud detection", response.vectorClock)
         return response
 
 
@@ -241,8 +256,27 @@ async def suggest_books(order_id: str) -> list[Book]:
     logger.debug("Executing event: book suggestion")
     async with grpc.aio.insecure_channel('book_suggestions:50053') as channel:
         stub = SuggestionsServiceStub(channel)
-        response: BookSuggestionResponse = await stub.SuggestBooks(BookSuggestionRequest(orderId=order_id))
+        response: BookSuggestionResponse = await stub.SuggestBooks(
+            BookSuggestionRequest(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock()))
+        )
+        await update_vector_clock("book suggestions",response.vectorClock)
         return [*map(to_book, response.suggestedBooks)]
+
+
+async def update_vector_clock(event_source: str, vector_clock_from_service: VectorClock):
+    vector_clock_from_service: Iterable[int] = vector_clock_from_service.clock
+    async with vector_clock_lock.get():
+        current_vector_clock = vector_clock.get()
+        logging.debug(f"({event_source}): started syncing vector clock: {current_vector_clock} and {vector_clock_from_service}")
+        # Orchestrator itself does not maintain a clock for itself,
+        # it just maintains global view obtained from vector clock reported by services
+        for i, (current_clock, new_clock) in enumerate(zip(current_vector_clock, vector_clock_from_service)):
+            current_vector_clock[i] = max(current_clock, new_clock)
+        logging.debug(f"({event_source}): synced vector clock: {current_vector_clock}")
+
+async def get_vector_clock():
+    async with vector_clock_lock.get():
+        return vector_clock.get().copy()
 
 
 def to_book(suggested_book: BookSuggestionResponse.SuggestedBook) -> Book:
@@ -262,23 +296,26 @@ async def clear_order_data(order_id: str):
 
 
 async def clear_fraud_detection_data(order_id: str) -> None:
-    logger.debug("Executing event: book suggestion")
+    logger.debug("Removing data from fraud detection service")
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
+        # TODO: pass vc
         await stub.ClearData(ClearFraudDetectionDataRequest(orderId=order_id))
 
 
 async def clear_verification_data(order_id: str) -> None:
-    logger.debug("Removing data from transaction verification ")
+    logger.debug("Removing data from transaction verification service")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel)
+        # TODO: pass vc
         await stub.ClearData(ClearDataRequest(orderId=order_id))
 
 
 async def clear_suggestions_data(order_id: str) -> None:
-    logger.debug("Executing event: book suggestion")
+    logger.debug("Removing data from book suggestions service")
     async with grpc.aio.insecure_channel('book_suggestions:50053') as channel:
         stub = SuggestionsServiceStub(channel)
+        # TODO: pass vc
         await stub.ClearData(ClearSuggestionsDataRequest(orderId=order_id))
 
 
