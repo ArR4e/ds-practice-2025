@@ -82,14 +82,14 @@ services:
       - ./utils:/app/utils
       - ./queue/src:/app/queue/src
       - ./logs/queue:/var/log/queue
-  executor-1:
+  executora:
     build:
       context: ./
       dockerfile: ./executor/Dockerfile
     ports:
       - 50060:50060
     environment:
-      - NAME=executor-1-1
+      - NAME=executora-1
       - PORT=50060
       - QUEUE_ADDR=queue_service:50055
       - PYTHONUNBUFFERED=TRUE
@@ -98,14 +98,16 @@ services:
       - ./utils:/app/utils
       - ./executor/src:/app/executor/src
       - ./logs/executor:/var/log/executor
-  executor-2:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  executorb:
     build:
       context: ./
       dockerfile: ./executor/Dockerfile
     ports:
       - 50061:50061
     environment:
-      - NAME=executor-2-1
+      - NAME=executorb-1
       - PORT=50061
       - QUEUE_ADDR=queue_service:50055
       - PYTHONUNBUFFERED=TRUE
@@ -114,14 +116,16 @@ services:
       - ./utils:/app/utils
       - ./executor/src:/app/executor/src
       - ./logs/executor:/var/log/executor
-  executor-3:
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+  executorc:
     build:
       context: ./
       dockerfile: ./executor/Dockerfile
     ports:
       - 50062:50062
     environment:
-      - NAME=executor-3-1
+      - NAME=executorc-1
       - PORT=50062
       - QUEUE_ADDR=queue_service:50055
       - PYTHONUNBUFFERED=TRUE
@@ -130,5 +134,7 @@ services:
       - ./utils:/app/utils
       - ./executor/src:/app/executor/src
       - ./logs/executor:/var/log/executor
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
     

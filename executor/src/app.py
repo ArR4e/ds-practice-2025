@@ -92,7 +92,7 @@ class ExecutorService(SelectionServicer):
 
     async def send_heart_beat_to(self, name, address):
         try:
-            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            channel = grpc.aio.insecure_channel(f'host.docker.internal:{address}')
             stub = SelectionStub(channel)
             response: OK = await asyncio.wait_for(
                 stub.HealthCheck(HealthDeclaration(
@@ -111,6 +111,7 @@ class ExecutorService(SelectionServicer):
             asyncio.sleep(0.1)
             with self._lock:
                 if self.state == LEADER:
+                    logger.info('POLLING QUEUE')
                     self.send_heart_beats()
                     self.poll_and_process_order()
                 elif time.time() - self.last_heartbeat > self.time_interval:
@@ -139,14 +140,14 @@ class ExecutorService(SelectionServicer):
                 self.leader_name = request.sender_name
                 self.last_heartbeat = time.time()
                 return VoteResponse(
-                    sender_name=self.id,
-                    senderUUID=self.id,
+                    sender_name=str(self.id),
+                    senderUUID=str(self.id),
                     confirmation=True
                 )
             else:
                 return VoteResponse(
-                    sender_name=self.id,
-                    senderUUID=self.id,
+                    sender_name=str(self.id),
+                    senderUUID=str(self.id),
                     confirmation=False
                 )
 
@@ -175,6 +176,7 @@ class ExecutorService(SelectionServicer):
         # Check majority
         total_nodes = len(self.peers) + 1
         #if is new leader
+        logger.info(f'total votes for {self.name} = {self.votes_received}')
         if self.votes_received > total_nodes // 2:
             self.state = LEADER
             self.declare_self_as_leader()
@@ -191,8 +193,7 @@ class ExecutorService(SelectionServicer):
 
     async def request_vote_from(self, name, address):
         try:
-            logger.error(f'{name}:{address}')
-            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            channel = grpc.aio.insecure_channel(f'host.docker.internal:{address}')
             stub = SelectionStub(channel)
             response: VoteResponse = await asyncio.wait_for(
                 stub.GetVoteRequest(VoteRequest(
@@ -200,12 +201,13 @@ class ExecutorService(SelectionServicer):
                     sender_name=self.name,
                     term=self.term
                 )),
-                timeout=4.0
+                timeout=5.0
             )
             #TODO check if this is safe
             if response.confirmation:
                 with self._lock:
                     self.votes_received += 1
+                    logger.debug(f'current votes for {self.name} = {self.votes_received}')
         except asyncio.TimeoutError:
             logger.debug(f'Vote request to {name} timed out.')
         except Exception as e:
@@ -213,12 +215,12 @@ class ExecutorService(SelectionServicer):
 
     async def send_leader_declaration_to(self, name, address):
         try:
-            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            channel = grpc.aio.insecure_channel(f'host.docker.internal:{address}')
             stub = SelectionStub(channel)
             response: OK = await asyncio.wait_for(
                 stub.DeclareLeader(LeaderDeclare(
-                    senderUUID=self.id,
-                    sender_name=self.name,
+                    senderUUID=str(self.id),
+                    sender_name=str(self.name),
                     term=self.term
                 )),
                 timeout=1.0
@@ -243,9 +245,9 @@ QUEUE_ADDR = os.getenv('QUEUE_ADDR')
 #
 async def server():
     peers = {
-        'executor-1-1':'50060',
-        'executor-2-1':'50061',
-        'executor-3-1':'50062'
+        'executora-1':'50060',
+        'executorb-1':'50061',
+        'executorc-1':'50062'
     }
     #remove own name from peers
     peers.pop(NAME)
