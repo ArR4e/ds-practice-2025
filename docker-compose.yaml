@@ -89,6 +89,7 @@ services:
     ports:
       - 50060:50060
     environment:
+      - LEADER = True
       - NAME=executora-1
       - PORT=50060
       - QUEUE_ADDR=queue_service:50055

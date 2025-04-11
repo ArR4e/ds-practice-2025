@@ -53,7 +53,7 @@ LEADER = 3
 #TODO needs a total redo to asyncio and proper multithreding
 
 class ExecutorService(SelectionServicer):
-    def __init__(self, id: UUID, name, peers: dict[str, str], queue_addr, port):
+    def __init__(self, id: UUID, name, peers: dict[str, str], queue_addr, port, is_leader):
         self.id = id
         self.name = name
         self.port = port
@@ -68,20 +68,22 @@ class ExecutorService(SelectionServicer):
         self.leader_uuid = None
         self.queue_addr = queue_addr
 
-    async def start(self):
-        loop = asyncio.new_event_loop()
-        
+        if is_leader:
+            self.state = LEADER
+            self.leader_name = self.name
+            self.leader_uuid = self.id
 
+    async def start(self):
         server = grpc.aio.server(futures.ThreadPoolExecutor(max_workers=10))
         add_SelectionServicer_to_server(self,server)
         server.add_insecure_port("[::]:" + self.port)
         await server.start()
         logger.info(f'Queue service started on port {self.port}')
-        
+        if self.state == LEADER:
+            logger.info(f'executor {self.name} became leader: status = {self.state}')
+            await self.send_heart_beats()
         asyncio.create_task(self.timer())
         await server.wait_for_termination()
-
-
 
     async def send_heart_beats(self):
         tasks = [
@@ -108,25 +110,25 @@ class ExecutorService(SelectionServicer):
 
     async def timer(self):
         while True:
-            asyncio.sleep(0.1)
+            await asyncio.sleep(0.1)
             with self._lock:
                 if self.state == LEADER:
                     logger.info('POLLING QUEUE')
-                    self.send_heart_beats()
-                    self.poll_and_process_order()
+                    await self.send_heart_beats()
+                    await self.poll_and_process_order()
                 elif time.time() - self.last_heartbeat > self.time_interval:
                     await self.start_election()
-
-
 
     async def poll_and_process_order(self) -> None:
         async with grpc.aio.insecure_channel(self.queue_addr) as channel:
             stub = QueueStub(channel=channel)
             order: VerificationRequest = await stub.Dequeue(OrderRequest())
-            logger.info(f'processing order {order.orderId}')
+            if not order.orderId.__eq__('0'):
+                logger.info(f'processing order {order.orderId}')
 
     def HealthCheck(self, request: HealthDeclaration, context) -> OK:
         if request.status:
+            self.state = FOLLOWER
             self.last_heartbeat = time.time()
             return OK()
 
@@ -160,7 +162,6 @@ class ExecutorService(SelectionServicer):
         self.time_interval = random.uniform(1.5, 3.0)
         return OK()
 
-
     async def start_election(self):
         self.state = CANDITATE
         self.term += 1
@@ -179,7 +180,7 @@ class ExecutorService(SelectionServicer):
         logger.info(f'total votes for {self.name} = {self.votes_received}')
         if self.votes_received > total_nodes // 2:
             self.state = LEADER
-            self.declare_self_as_leader()
+            await self.declare_self_as_leader()
             logger.info(f'{self.name} becomes leader for term {self.term}')
         else:
             logger.info(f'{self.name} failed to become leader in term {self.term}')
@@ -237,6 +238,7 @@ PORT = os.getenv('PORT')
 QUEUE_ADDR = os.getenv('QUEUE_ADDR')
 
 
+
 #
 # Change the peers to change the known peers, 
 # add all, self will be removed later
@@ -244,11 +246,14 @@ QUEUE_ADDR = os.getenv('QUEUE_ADDR')
 #
 #
 async def server():
+    is_new_leader = False
     peers = {
         'executora-1':'50060',
         'executorb-1':'50061',
         'executorc-1':'50062'
     }
+    if NAME == 'executora-1':
+        is_new_leader = True
     #remove own name from peers
     peers.pop(NAME)
     executor = ExecutorService(
@@ -256,7 +261,8 @@ async def server():
         peers= peers, 
         queue_addr=QUEUE_ADDR,
         name=NAME,
-        port=PORT)
+        port=PORT,
+        is_leader=is_new_leader)
     await executor.start()
 
 if __name__ == '__main__':
