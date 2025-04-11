@@ -135,7 +135,7 @@ async def initialize_verify_order_data(order_id: str, request: CheckoutRequest) 
 async def initialize_detect_fraud_data(order_id: str, request: CheckoutRequest) -> None:
     logger.debug("Initializing data in fraud detection service")
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
-        stub = FraudDetectionServiceStub(channel)  # TODO: pass vc
+        stub = FraudDetectionServiceStub(channel)
         await stub.InitializeRequestData(compose_fraud_detection_data(order_id, request))
 
 
@@ -299,24 +299,21 @@ async def clear_fraud_detection_data(order_id: str) -> None:
     logger.debug("Removing data from fraud detection service")
     async with grpc.aio.insecure_channel('fraud_detection:50051') as channel:
         stub = FraudDetectionServiceStub(channel)
-        # TODO: pass vc
-        await stub.ClearData(ClearFraudDetectionDataRequest(orderId=order_id))
+        await stub.ClearData(ClearFraudDetectionDataRequest(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock())))
 
 
 async def clear_verification_data(order_id: str) -> None:
     logger.debug("Removing data from transaction verification service")
     async with grpc.aio.insecure_channel('order_verification:50052') as channel:
         stub = VerifyStub(channel)
-        # TODO: pass vc
-        await stub.ClearData(ClearDataRequest(orderId=order_id))
+        await stub.ClearData(ClearDataRequest(orderId=order_id, vectorClock=VectorClock(clock = await get_vector_clock())))
 
 
 async def clear_suggestions_data(order_id: str) -> None:
     logger.debug("Removing data from book suggestions service")
     async with grpc.aio.insecure_channel('book_suggestions:50053') as channel:
         stub = SuggestionsServiceStub(channel)
-        # TODO: pass vc
-        await stub.ClearData(ClearSuggestionsDataRequest(orderId=order_id))
+        await stub.ClearData(ClearSuggestionsDataRequest(orderId=order_id, vectorClock=VectorClock(clock=await get_vector_clock())))
 
 
 if __name__ == '__main__':

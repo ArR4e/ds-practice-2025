@@ -122,8 +122,11 @@ class SuggestionsService(SuggestionsServiceServicer):
         )
 
     def ClearData(self, request: ClearSuggestionsDataRequest, context) -> ClearSuggestionsDataResponse:
-        # TODO :check vc
-        self.order_data_store.pop(request.orderId, None)
+        if self.less_than(self.order_data_store[request.orderId]["vector_clock"], request.vectorClock.clock):
+            logging.info("Local vector clock is <= incoming vector clock, removing data")
+            self.order_data_store.pop(request.orderId, None)
+        else:
+            logging.info("Local vector clock is not <= incoming vector clock; rejecting request for removing data")
         return ClearSuggestionsDataResponse()
 
     def merge_and_increment(self, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> list[int]:
@@ -132,6 +135,9 @@ class SuggestionsService(SuggestionsServiceServicer):
         local_vector_clock[self.service_idx] += 1
         logging.debug(f"Received event; updated vector clock: {local_vector_clock}")
         return local_vector_clock.copy()
+
+    def less_than(self, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> bool:
+        return all(local_clock <= incoming_clock for (local_clock, incoming_clock) in zip(local_vector_clock, incoming_vector_clock))
 
 
 def score_book(book_id: int) -> [int, float]:

@@ -92,8 +92,11 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
          return generate_success_message(message='SUCCESS', vector_clock=vector_clock)
 
      def ClearData(self, request: ClearDataRequest, context) -> ClearDataResponse:
-         # TODO check vc
-         self.data_store.pop(request.orderId)
+         if self.less_than(self.data_store[request.orderId]["lock"], self.data_store[request.orderId]["vector_clock"], request.vectorClock.clock):
+             logging.info("Local vector clock is <= incoming vector clock, removing data")
+             self.data_store.pop(request.orderId, None)
+         else:
+            logging.info("Local vector clock is not <= incoming vector clock; rejecting request for removing data")
          return ClearDataResponse()
 
      def merge_and_increment(self, lock: Lock, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> list[int]:
@@ -103,6 +106,10 @@ class VerificationService(verification_pb2_grpc.VerifyServicer):
              local_vector_clock[self.service_idx] += 1
              logging.debug(f"Received event; updated vector clock: {local_vector_clock}")
              return local_vector_clock.copy()
+
+     def less_than(self, lock: Lock, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> bool:
+        with lock:
+            return all(local_clock <= incoming_clock for (local_clock, incoming_clock) in zip(local_vector_clock, incoming_vector_clock))
 
 
 def check_expiration_date(creditcard: CreditCard) -> bool:

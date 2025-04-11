@@ -72,8 +72,11 @@ class FraudDetectionServiceService(FraudDetectionServiceServicer):
         )
 
     def ClearData(self, request: ClearFraudDetectionDataRequest, context) -> ClearFraudDetectionDataResponse:
-        # TODO: check vector clock <=
-        self.detection_data_store.pop(request.orderId, None)
+        if self.less_than(self.detection_data_store[request.orderId]["lock"], self.detection_data_store[request.orderId]["vector_clock"], request.vectorClock.clock):
+            logging.info("Local vector clock is <= incoming vector clock, removing data")
+            self.detection_data_store.pop(request.orderId, None)
+        else:
+          logging.info("Local vector clock is not <= incoming vector clock; rejecting request for removing data")
         return ClearFraudDetectionDataResponse()
 
     def merge_and_increment(self, lock: Lock, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> \
@@ -85,6 +88,9 @@ class FraudDetectionServiceService(FraudDetectionServiceServicer):
             logging.debug(f"Received event; updated vector clock: {local_vector_clock}")
             return local_vector_clock.copy()
 
+    def less_than(self, lock: Lock, local_vector_clock: list[int], incoming_vector_clock: Iterable[int]) -> bool:
+        with lock:
+            return all(local_clock <= incoming_clock for (local_clock, incoming_clock) in zip(local_vector_clock, incoming_vector_clock))
 
 def serve():
     # Create a gRPC server
