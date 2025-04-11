@@ -17,7 +17,7 @@ class VerifyStub(object):
         self.InitializeRequestData = channel.unary_unary(
                 '/verification.Verify/InitializeRequestData',
                 request_serializer=verification__pb2.VerificationRequest.SerializeToString,
-                response_deserializer=verification__pb2.VerificationResponse.FromString,
+                response_deserializer=verification__pb2.InitializeRequestDataResponse.FromString,
                 )
         self.VerifyOrderData = channel.unary_unary(
                 '/verification.Verify/VerifyOrderData',
@@ -69,7 +69,7 @@ def add_VerifyServicer_to_server(servicer, server):
             'InitializeRequestData': grpc.unary_unary_rpc_method_handler(
                     servicer.InitializeRequestData,
                     request_deserializer=verification__pb2.VerificationRequest.FromString,
-                    response_serializer=verification__pb2.VerificationResponse.SerializeToString,
+                    response_serializer=verification__pb2.InitializeRequestDataResponse.SerializeToString,
             ),
             'VerifyOrderData': grpc.unary_unary_rpc_method_handler(
                     servicer.VerifyOrderData,
@@ -109,7 +109,7 @@ class Verify(object):
             metadata=None):
         return grpc.experimental.unary_unary(request, target, '/verification.Verify/InitializeRequestData',
             verification__pb2.VerificationRequest.SerializeToString,
-            verification__pb2.VerificationResponse.FromString,
+            verification__pb2.InitializeRequestDataResponse.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
 

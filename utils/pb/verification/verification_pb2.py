@@ -12,35 +12,38 @@ from google.protobuf.internal import builder as _builder
 _sym_db = _symbol_database.Default()
 
 
+import common_pb2 as common__pb2
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12verification.proto\x12\x0cverification\"#\n\x10\x43learDataRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\"5\n\x1dInitializeRequestDataResponse\x12\x14\n\x0c\x63onfirmation\x18\x01 \x01(\x08\"\x1d\n\nVerifyData\x12\x0f\n\x07orderId\x18\x01 \x01(\t\"3\n\x14VerificationResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\"\xd1\x01\n\x13VerificationRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12 \n\x04user\x18\x02 \x01(\x0b\x32\x12.verification.User\x12*\n\torderData\x18\x03 \x01(\x0b\x32\x17.verification.OrderData\x12,\n\ncreditCard\x18\x04 \x01(\x0b\x32\x18.verification.CreditCard\x12-\n\x07\x62illing\x18\x05 \x01(\x0b\x32\x1c.verification.BillingAddress\"%\n\x04User\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontact\x18\x02 \x01(\t\"\x9d\x01\n\tOrderData\x12\x35\n\norderItems\x18\x01 \x03(\x0b\x32!.verification.OrderData.OrderItem\x12\x14\n\x0c\x64iscountCode\x18\x02 \x01(\t\x12\x16\n\x0eshippingMethod\x18\x03 \x01(\t\x1a+\n\tOrderItem\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"A\n\nCreditCard\x12\x0e\n\x06number\x18\x01 \x01(\t\x12\x16\n\x0e\x65xpirationDate\x18\x02 \x01(\t\x12\x0b\n\x03\x63vv\x18\x03 \x01(\t\"[\n\x0e\x42illingAddress\x12\x0e\n\x06street\x18\x01 \x01(\t\x12\x0c\n\x04\x63ity\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\t\x12\x0b\n\x03zip\x18\x04 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x05 \x01(\t2\xda\x02\n\x06Verify\x12^\n\x15InitializeRequestData\x12!.verification.VerificationRequest\x1a\".verification.VerificationResponse\x12O\n\x0fVerifyOrderData\x12\x18.verification.VerifyData\x1a\".verification.VerificationResponse\x12N\n\x0eVerifyUserData\x12\x18.verification.VerifyData\x1a\".verification.VerificationResponse\x12O\n\tClearData\x12\x1e.verification.ClearDataRequest\x1a\".verification.VerificationResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x12verification.proto\x12\x0cverification\x1a\x0c\x63ommon.proto\"M\n\x10\x43learDataRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12(\n\x0bvectorClock\x18\x02 \x01(\x0b\x32\x13.common.VectorClock\"\x13\n\x11\x43learDataResponse\"5\n\x1dInitializeRequestDataResponse\x12\x14\n\x0c\x63onfirmation\x18\x01 \x01(\x08\"G\n\nVerifyData\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12(\n\x0bvectorClock\x18\x03 \x01(\x0b\x32\x13.common.VectorClock\"]\n\x14VerificationResponse\x12\x0e\n\x06status\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\x12(\n\x0bvectorClock\x18\x03 \x01(\x0b\x32\x13.common.VectorClock\"\xd1\x01\n\x13VerificationRequest\x12\x0f\n\x07orderId\x18\x01 \x01(\t\x12 \n\x04user\x18\x02 \x01(\x0b\x32\x12.verification.User\x12*\n\torderData\x18\x03 \x01(\x0b\x32\x17.verification.OrderData\x12,\n\ncreditCard\x18\x04 \x01(\x0b\x32\x18.verification.CreditCard\x12-\n\x07\x62illing\x18\x05 \x01(\x0b\x32\x1c.verification.BillingAddress\"%\n\x04User\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0f\n\x07\x63ontact\x18\x02 \x01(\t\"\x9d\x01\n\tOrderData\x12\x35\n\norderItems\x18\x01 \x03(\x0b\x32!.verification.OrderData.OrderItem\x12\x14\n\x0c\x64iscountCode\x18\x02 \x01(\t\x12\x16\n\x0eshippingMethod\x18\x03 \x01(\t\x1a+\n\tOrderItem\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x10\n\x08quantity\x18\x02 \x01(\x05\"A\n\nCreditCard\x12\x0e\n\x06number\x18\x01 \x01(\t\x12\x16\n\x0e\x65xpirationDate\x18\x02 \x01(\t\x12\x0b\n\x03\x63vv\x18\x03 \x01(\t\"[\n\x0e\x42illingAddress\x12\x0e\n\x06street\x18\x01 \x01(\t\x12\x0c\n\x04\x63ity\x18\x02 \x01(\t\x12\r\n\x05state\x18\x03 \x01(\t\x12\x0b\n\x03zip\x18\x04 \x01(\t\x12\x0f\n\x07\x63ountry\x18\x05 \x01(\t2\xe3\x02\n\x06Verify\x12g\n\x15InitializeRequestData\x12!.verification.VerificationRequest\x1a+.verification.InitializeRequestDataResponse\x12O\n\x0fVerifyOrderData\x12\x18.verification.VerifyData\x1a\".verification.VerificationResponse\x12N\n\x0eVerifyUserData\x12\x18.verification.VerifyData\x1a\".verification.VerificationResponse\x12O\n\tClearData\x12\x1e.verification.ClearDataRequest\x1a\".verification.VerificationResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'verification_pb2', _globals)
 if _descriptor._USE_C_DESCRIPTORS == False:
   DESCRIPTOR._options = None
-  _globals['_CLEARDATAREQUEST']._serialized_start=36
-  _globals['_CLEARDATAREQUEST']._serialized_end=71
-  _globals['_INITIALIZEREQUESTDATARESPONSE']._serialized_start=73
-  _globals['_INITIALIZEREQUESTDATARESPONSE']._serialized_end=126
-  _globals['_VERIFYDATA']._serialized_start=128
-  _globals['_VERIFYDATA']._serialized_end=157
-  _globals['_VERIFICATIONRESPONSE']._serialized_start=159
-  _globals['_VERIFICATIONRESPONSE']._serialized_end=210
-  _globals['_VERIFICATIONREQUEST']._serialized_start=213
-  _globals['_VERIFICATIONREQUEST']._serialized_end=422
-  _globals['_USER']._serialized_start=424
-  _globals['_USER']._serialized_end=461
-  _globals['_ORDERDATA']._serialized_start=464
-  _globals['_ORDERDATA']._serialized_end=621
-  _globals['_ORDERDATA_ORDERITEM']._serialized_start=578
-  _globals['_ORDERDATA_ORDERITEM']._serialized_end=621
-  _globals['_CREDITCARD']._serialized_start=623
-  _globals['_CREDITCARD']._serialized_end=688
-  _globals['_BILLINGADDRESS']._serialized_start=690
-  _globals['_BILLINGADDRESS']._serialized_end=781
-  _globals['_VERIFY']._serialized_start=784
-  _globals['_VERIFY']._serialized_end=1130
+  _globals['_CLEARDATAREQUEST']._serialized_start=50
+  _globals['_CLEARDATAREQUEST']._serialized_end=127
+  _globals['_CLEARDATARESPONSE']._serialized_start=129
+  _globals['_CLEARDATARESPONSE']._serialized_end=148
+  _globals['_INITIALIZEREQUESTDATARESPONSE']._serialized_start=150
+  _globals['_INITIALIZEREQUESTDATARESPONSE']._serialized_end=203
+  _globals['_VERIFYDATA']._serialized_start=205
+  _globals['_VERIFYDATA']._serialized_end=276
+  _globals['_VERIFICATIONRESPONSE']._serialized_start=278
+  _globals['_VERIFICATIONRESPONSE']._serialized_end=371
+  _globals['_VERIFICATIONREQUEST']._serialized_start=374
+  _globals['_VERIFICATIONREQUEST']._serialized_end=583
+  _globals['_USER']._serialized_start=585
+  _globals['_USER']._serialized_end=622
+  _globals['_ORDERDATA']._serialized_start=625
+  _globals['_ORDERDATA']._serialized_end=782
+  _globals['_ORDERDATA_ORDERITEM']._serialized_start=739
+  _globals['_ORDERDATA_ORDERITEM']._serialized_end=782
+  _globals['_CREDITCARD']._serialized_start=784
+  _globals['_CREDITCARD']._serialized_end=849
+  _globals['_BILLINGADDRESS']._serialized_start=851
+  _globals['_BILLINGADDRESS']._serialized_end=942
+  _globals['_VERIFY']._serialized_start=945
+  _globals['_VERIFY']._serialized_end=1300
 # @@protoc_insertion_point(module_scope)

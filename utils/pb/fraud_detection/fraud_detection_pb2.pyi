@@ -1,3 +1,4 @@
+import common_pb2 as _common_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -6,7 +7,7 @@ from typing import ClassVar as _ClassVar, Iterable as _Iterable, Mapping as _Map
 DESCRIPTOR: _descriptor.FileDescriptor
 
 class FraudDetectionData(_message.Message):
-    __slots__ = ("orderId", "user", "orderData", "creditCard", "billingAddress", "telemetry")
+    __slots__ = ("orderId", "user", "orderData", "creditCard", "billingAddress", "telemetry", "vectorClock")
     class User(_message.Message):
         __slots__ = ("name", "contact")
         NAME_FIELD_NUMBER: _ClassVar[int]
@@ -85,51 +86,65 @@ class FraudDetectionData(_message.Message):
     CREDITCARD_FIELD_NUMBER: _ClassVar[int]
     BILLINGADDRESS_FIELD_NUMBER: _ClassVar[int]
     TELEMETRY_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
     user: FraudDetectionData.User
     orderData: FraudDetectionData.OrderData
     creditCard: FraudDetectionData.CreditCard
     billingAddress: FraudDetectionData.BillingAddress
     telemetry: FraudDetectionData.Telemetry
-    def __init__(self, orderId: _Optional[str] = ..., user: _Optional[_Union[FraudDetectionData.User, _Mapping]] = ..., orderData: _Optional[_Union[FraudDetectionData.OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[FraudDetectionData.CreditCard, _Mapping]] = ..., billingAddress: _Optional[_Union[FraudDetectionData.BillingAddress, _Mapping]] = ..., telemetry: _Optional[_Union[FraudDetectionData.Telemetry, _Mapping]] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., user: _Optional[_Union[FraudDetectionData.User, _Mapping]] = ..., orderData: _Optional[_Union[FraudDetectionData.OrderData, _Mapping]] = ..., creditCard: _Optional[_Union[FraudDetectionData.CreditCard, _Mapping]] = ..., billingAddress: _Optional[_Union[FraudDetectionData.BillingAddress, _Mapping]] = ..., telemetry: _Optional[_Union[FraudDetectionData.Telemetry, _Mapping]] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class InitializeRequestDataResponse(_message.Message):
-    __slots__ = ()
-    def __init__(self) -> None: ...
+    __slots__ = ("vectorClock",)
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class QuickFraudDetectionRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class QuickFraudDetectionResponse(_message.Message):
-    __slots__ = ("isFraudulent", "reason")
+    __slots__ = ("isFraudulent", "reason", "vectorClock")
     ISFRAUDULENT_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     isFraudulent: bool
     reason: str
-    def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ComprehensiveFraudDetectionRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ComprehensiveFraudDetectionResponse(_message.Message):
-    __slots__ = ("isFraudulent", "reason")
+    __slots__ = ("isFraudulent", "reason", "vectorClock")
     ISFRAUDULENT_FIELD_NUMBER: _ClassVar[int]
     REASON_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     isFraudulent: bool
     reason: str
-    def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, isFraudulent: bool = ..., reason: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ClearFraudDetectionDataRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ClearFraudDetectionDataResponse(_message.Message):
     __slots__ = ()

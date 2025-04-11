@@ -1,63 +1,71 @@
 syntax = "proto3";
 
 package verification;
+import "common.proto";
 
 
 service Verify{
-    rpc InitializeRequestData (VerificationRequest) returns (VerificationResponse);
-    rpc VerifyOrderData (VerifyData) returns (VerificationResponse);
-    rpc VerifyUserData (VerifyData) returns (VerificationResponse);
-    rpc ClearData (ClearDataRequest) returns (VerificationResponse);
+  rpc InitializeRequestData (VerificationRequest) returns (InitializeRequestDataResponse);
+  rpc VerifyOrderData (VerifyData) returns (VerificationResponse);
+  rpc VerifyUserData (VerifyData) returns (VerificationResponse);
+  rpc ClearData (ClearDataRequest) returns (VerificationResponse);
 }
 
 message ClearDataRequest{
-    string orderId = 1;
+  string orderId = 1;
+  common.VectorClock vectorClock = 2;
 }
 
+message ClearDataResponse{
+}
+
+
 message InitializeRequestDataResponse{
-    bool confirmation = 1;
+  bool confirmation = 1;
 }
 
 message VerifyData{
-    string orderId = 1;
+  string orderId = 1;
+  common.VectorClock vectorClock = 3;
 }
 
 message VerificationResponse{
-    bool status = 1;
-    string msg = 2;
+  bool status = 1;
+  string msg = 2;
+  common.VectorClock vectorClock = 3;
 }
 
 
 message VerificationRequest{
-    string orderId = 1;
-    User user = 2;
-    OrderData orderData = 3;
-    CreditCard creditCard = 4;
-    BillingAddress billing = 5;
+  string orderId = 1;
+  User user = 2;
+  OrderData orderData = 3;
+  CreditCard creditCard = 4;
+  BillingAddress billing = 5;
 }
 
 message User {
-    string name = 1;
-    string contact = 2;
+  string name = 1;
+  string contact = 2;
 }
 message OrderData {
-    message OrderItem {
-        string name = 1;
-        int32 quantity = 2;
-    }
-    repeated OrderItem orderItems = 1;
-    string discountCode = 2;
-    string shippingMethod = 3;
+  message OrderItem {
+    string name = 1;
+    int32 quantity = 2;
+  }
+  repeated OrderItem orderItems = 1;
+  string discountCode = 2;
+  string shippingMethod = 3;
 }
 message CreditCard {
-    string number = 1;
-    string expirationDate = 2;
-    string cvv = 3;
+  string number = 1;
+  string expirationDate = 2;
+  string cvv = 3;
 }
 message BillingAddress {
-    string street = 1;
-    string city = 2;
-    string state = 3;
-    string zip = 4;
-    string country = 5;
+  string street = 1;
+  string city = 2;
+  string state = 3;
+  string zip = 4;
+  string country = 5;
 }

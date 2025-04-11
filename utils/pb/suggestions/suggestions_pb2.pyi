@@ -1,3 +1,4 @@
+import common_pb2 as _common_pb2
 from google.protobuf.internal import containers as _containers
 from google.protobuf import descriptor as _descriptor
 from google.protobuf import message as _message
@@ -20,13 +21,15 @@ class InitializeResponse(_message.Message):
     def __init__(self) -> None: ...
 
 class BookSuggestionRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class BookSuggestionResponse(_message.Message):
-    __slots__ = ("suggestedBooks",)
+    __slots__ = ("suggestedBooks", "vectorClock")
     class SuggestedBook(_message.Message):
         __slots__ = ("bookId", "title", "author")
         BOOKID_FIELD_NUMBER: _ClassVar[int]
@@ -37,14 +40,18 @@ class BookSuggestionResponse(_message.Message):
         author: str
         def __init__(self, bookId: _Optional[str] = ..., title: _Optional[str] = ..., author: _Optional[str] = ...) -> None: ...
     SUGGESTEDBOOKS_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     suggestedBooks: _containers.RepeatedCompositeFieldContainer[BookSuggestionResponse.SuggestedBook]
-    def __init__(self, suggestedBooks: _Optional[_Iterable[_Union[BookSuggestionResponse.SuggestedBook, _Mapping]]] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, suggestedBooks: _Optional[_Iterable[_Union[BookSuggestionResponse.SuggestedBook, _Mapping]]] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ClearSuggestionsDataRequest(_message.Message):
-    __slots__ = ("orderId",)
+    __slots__ = ("orderId", "vectorClock")
     ORDERID_FIELD_NUMBER: _ClassVar[int]
+    VECTORCLOCK_FIELD_NUMBER: _ClassVar[int]
     orderId: str
-    def __init__(self, orderId: _Optional[str] = ...) -> None: ...
+    vectorClock: _common_pb2.VectorClock
+    def __init__(self, orderId: _Optional[str] = ..., vectorClock: _Optional[_Union[_common_pb2.VectorClock, _Mapping]] = ...) -> None: ...
 
 class ClearSuggestionsDataResponse(_message.Message):
     __slots__ = ()
