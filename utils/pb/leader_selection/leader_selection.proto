@@ -6,6 +6,13 @@ package leader_selection;
 service Selection{
     rpc HealthCheck (HealthDeclaration) returns (OK);
     rpc GetVoteRequest (VoteRequest) returns (VoteResponse);
+    rpc DeclareLeader (LeaderDeclare) returns (OK);
+}
+
+message LeaderDeclare{
+    string senderUUID = 1;
+    string sender_name = 2;
+    int32 term = 3;
 }
 
 message OK{

@@ -4,6 +4,16 @@ from typing import ClassVar as _ClassVar, Optional as _Optional
 
 DESCRIPTOR: _descriptor.FileDescriptor
 
+class LeaderDeclare(_message.Message):
+    __slots__ = ("senderUUID", "sender_name", "term")
+    SENDERUUID_FIELD_NUMBER: _ClassVar[int]
+    SENDER_NAME_FIELD_NUMBER: _ClassVar[int]
+    TERM_FIELD_NUMBER: _ClassVar[int]
+    senderUUID: str
+    sender_name: str
+    term: int
+    def __init__(self, senderUUID: _Optional[str] = ..., sender_name: _Optional[str] = ..., term: _Optional[int] = ...) -> None: ...
+
 class OK(_message.Message):
     __slots__ = ()
     def __init__(self) -> None: ...

@@ -24,6 +24,11 @@ class SelectionStub(object):
                 request_serializer=leader__selection__pb2.VoteRequest.SerializeToString,
                 response_deserializer=leader__selection__pb2.VoteResponse.FromString,
                 )
+        self.DeclareLeader = channel.unary_unary(
+                '/leader_selection.Selection/DeclareLeader',
+                request_serializer=leader__selection__pb2.LeaderDeclare.SerializeToString,
+                response_deserializer=leader__selection__pb2.OK.FromString,
+                )
 
 
 class SelectionServicer(object):
@@ -41,6 +46,12 @@ class SelectionServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def DeclareLeader(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SelectionServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -53,6 +64,11 @@ def add_SelectionServicer_to_server(servicer, server):
                     servicer.GetVoteRequest,
                     request_deserializer=leader__selection__pb2.VoteRequest.FromString,
                     response_serializer=leader__selection__pb2.VoteResponse.SerializeToString,
+            ),
+            'DeclareLeader': grpc.unary_unary_rpc_method_handler(
+                    servicer.DeclareLeader,
+                    request_deserializer=leader__selection__pb2.LeaderDeclare.FromString,
+                    response_serializer=leader__selection__pb2.OK.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -95,5 +111,22 @@ class Selection(object):
         return grpc.experimental.unary_unary(request, target, '/leader_selection.Selection/GetVoteRequest',
             leader__selection__pb2.VoteRequest.SerializeToString,
             leader__selection__pb2.VoteResponse.FromString,
+            options, channel_credentials,
+            insecure, call_credentials, compression, wait_for_ready, timeout, metadata)
+
+    @staticmethod
+    def DeclareLeader(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(request, target, '/leader_selection.Selection/DeclareLeader',
+            leader__selection__pb2.LeaderDeclare.SerializeToString,
+            leader__selection__pb2.OK.FromString,
             options, channel_credentials,
             insecure, call_credentials, compression, wait_for_ready, timeout, metadata)

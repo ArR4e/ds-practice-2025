@@ -24,7 +24,7 @@ from queue_service_pb2_grpc import QueueStub
 from queue_service_pb2 import OrderRequest
 from leader_selection_pb2_grpc import SelectionServicer, SelectionStub, \
     add_SelectionServicer_to_server
-from leader_selection_pb2 import HealthDeclaration, OK, VoteRequest, VoteResponse
+from leader_selection_pb2 import HealthDeclaration, OK, VoteRequest, VoteResponse, LeaderDeclare
 
 
 import grpc
@@ -37,6 +37,7 @@ import time
 from uuid import uuid4, UUID
 import random
 from asyncio import gather, TaskGroup
+import asyncio
 
 global logger
 logger = logging.getLogger("queue_logger")
@@ -53,15 +54,17 @@ LEADER = 3
 #TODO needs a total redo to asyncio and proper multithreding
 
 class ExecutorService(SelectionServicer):
-    def __init__(self, id, name, peers: dict[str, (UUID, SelectionStub)], queue_addr):
+    def __init__(self, id, name, peers: dict[str, str], queue_addr, port):
         self.id = id
         self.name = name
-        self.peer_stubs = peers
+        self.port = port
+        self.peers = peers
         self.term = 0
         self.STATE = FOLLOWER
         self._lock = threading.Lock()
         self.last_heartbeat = time.time()
-        self.votes_in_favor = 0
+        self.time_interval = random.uniform(1.5, 3.0)
+        self.votes_received = 0
         self.leader_name = None
         self.leader_uuid = None
         self.queue_addr = queue_addr
@@ -69,42 +72,58 @@ class ExecutorService(SelectionServicer):
         threading.Thread(target=self.timer, daemon=True).start()
 
 
-    def sendHeartBeats(self):
-        for (peer_id, stub) in self.peer_stubs:
-            try: 
-                current_stub: SelectionStub = stub
-                current_stub.HealthCheck(HealthDeclaration(
+    async def send_heart_beats(self):
+        tasks = [
+            asyncio.create_task(self. send_heart_beat_to(name, address))
+            for name, address in self.peers
+        ]
+        await asyncio.gather(*tasks)
+
+    async def send_heart_beat_to(self, name, address):
+        try:
+            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            stub = SelectionStub(channel)
+            response: OK = await asyncio.wait_for(
+                stub.HealthCheck(HealthDeclaration(
                     status=True,
                     msg='SUCCESS'
-                ))
-            except Exception as e:
-                print(f'Heartbeat to {peer_id} failed')
+                )),
+                timeout=1.0
+            )
+        except asyncio.TimeoutError:
+            logger.debug(f'heartbeat to {name} timed out.')
+        except Exception as e:
+            logger.debug(f'Error contacting {name} ({address})')
 
     def timer(self):
         while True:
             time.sleep(0.1)
             with self.lock:
                 if self.state == LEADER:
-                    self.sendHeartBeats()
-                    self.pollAndProcessOrder()
-                elif time.time() - self.last_heartbeat > random.uniform(1.5, 3.0):
+                    self.send_heart_beats()
+                    self.poll_and_process_order()
+                elif time.time() - self.last_heartbeat > self.time_interval:
                     self.start_election()
 
-    async def pollAndProcessOrder(self):
+
+
+    async def poll_and_process_order(self) -> None:
         async with grpc.aio.insecure_channel(self.queue_addr) as channel:
             stub = QueueStub(channel=channel)
             order: VerificationRequest = await stub.Dequeue(OrderRequest())
             logger.info(f'processing order {order.orderId}')
 
-    def HealthCheck(self, request: HealthDeclaration, context):
+    def HealthCheck(self, request: HealthDeclaration, context) -> OK:
         if request.status:
+            self.last_heartbeat = time.time()
             return OK()
 
-    def GetVoteRequest(self, request: VoteRequest, context):
+    def GetVoteRequest(self, request: VoteRequest, context) -> VoteResponse:
         with self._lock:
             if request.term > self.term:
                 self.term = request.term
                 self.STATE = FOLLOWER
+                self.votes_received = 0
                 self.leader_uuid = UUID(request.senderUUID)
                 self.leader_name = request.sender_name
                 self.last_heartbeat = time.time()
@@ -120,32 +139,113 @@ class ExecutorService(SelectionServicer):
                     confirmation=False
                 )
 
+    def DeclareLeader(self, request: LeaderDeclare, context):
+        self.state = FOLLOWER
+        self.term = request.term
+        self.leader_name = request.sender_name
+        self.leader_uuid = request.senderUUID
+        self.last_heartbeat = time.time()
+        self.time_interval = random.uniform(1.5, 3.0)
+        return OK()
 
 
-    def start_election(self):
+    async def start_election(self):
         self.state = CANDITATE
         self.term += 1
-        self.voted_for = self.node_id
         self.votes_received = 1
         self.last_heartbeat = time.time()
 
-        for peer_id, stub in self.nodes:
-            threading.Thread(target=self.GetVoteRequest, args=(VoteRequest(
-                senderUUID = self.id,
-                sender_name = self.name,
-                term = self.term
-            ))).start()
+        tasks = [
+            asyncio.create_task(self.request_vote_from(name, address))
+            for name, address in self.peers
+        ]
+        await asyncio.gather(*tasks)
+
+        # Check majority
+        total_nodes = len(self.nodes) + 1
+        #if is new leader
+        if self.votes_received > total_nodes // 2:
+            self.state = LEADER
+            self.declare_self_as_leader()
+            logger.info(f'{self.name} becomes leader for term {self.term}')
+        else:
+            logger.info(f'{self.name} failed to become leader in term {self.term}')
+
+    async def declare_self_as_leader(self):
+        tasks = [
+            asyncio.create_task(self. send_leader_declaration_to(name, address))
+            for name, address in self.peers
+        ]
+        await asyncio.gather(*tasks)
+
+    async def request_vote_from(self, name, address):
+        try:
+            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            stub = SelectionStub(channel)
+            response: VoteResponse = await asyncio.wait_for(
+                stub.GetVoteRequest(VoteRequest(
+                    senderUUID=self.id,
+                    sender_name=self.name,
+                    term=self.term
+                )),
+                timeout=1.0
+            )
+            #TODO check if this is safe
+            if response.confirmation:
+                with self._lock:
+                    self.votes_received += 1
+        except asyncio.TimeoutError:
+            logger.debug(f'Vote request to {name} timed out.')
+        except Exception as e:
+            logger.debug(f'Error contacting {name} ({address})')
+
+    async def send_leader_declaration_to(self, name, address):
+        try:
+            channel = grpc.aio.insecure_channel(f'{name}:{address}')
+            stub = SelectionStub(channel)
+            response: OK = await asyncio.wait_for(
+                stub.DeclareLeader(LeaderDeclare(
+                    senderUUID=self.id,
+                    sender_name=self.name,
+                    term=self.term
+                )),
+                timeout=1.0
+            )
+        except asyncio.TimeoutError:
+            logger.debug(f'Declaration to {name} timed out.')
+        except Exception as e:
+            logger.debug(f'Error contacting {name} ({address})')
         
             
+#TODO add to docker compose file
+NAME = os.getenv('NAME')
+PORT = os.getenv('PORT')
+QUEUE_ADDR = os.getenv('QUEUE_ADDR')
 
 
-
+#
+# Change the peers to change the known peers, 
+# add all, self will be removed later
+#
+#
+#
 def server():
+    peers = {
+        'executor-1':'50065'
+    }
+    #remove own name from peers
+    peers.pop(NAME)
+    executor = ExecutorService(
+        id=uuid4(), 
+        peers= peers, 
+        queue_addr=QUEUE_ADDR,
+        name=NAME,
+        port=PORT)
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-    add_SelectionServicer_to_server(ExecutorService(),server)
-    server.add_insecure_port("[::]:" + '50060')
+    add_SelectionServicer_to_server(executor,server)
+    server.add_insecure_port("[::]:" + PORT)
     server.start()
-    logger.info(f'Queue service started on port 50060')
+    logger.info(f'Queue service started on port {PORT}')
     server.wait_for_termination()
 
 if __name__ == '__main__':
