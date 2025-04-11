@@ -1,0 +1,11 @@
+The online bookstore operates using a distributed **client-server** architecture with a modular design consisting of a frontend, orchestrator, multiple backend gRPC services, a priority-based queue service, and replicated executor service.
+
+Clients interact directly with the frontend to place order for books. The frontend forwards purchase requests to the orchestrator, which coordinates the order processing workflow.
+
+The orchestrator asynchronously invokes several gRPC-based backend services responsible for transaction verification, fraud detection, and book suggestion services. These backend services communicate using event-driven interactions and cooperative multitasking to achieve high efficiency. Vector clocks are employed to manage event ordering and maintain consistency across services.
+
+Once transaction verification, fraud detection, and book suggestion tasks complete successfully, the orchestrator publishes the order details to a priority-based queue service and returns response to client. This approach enables the orchestrator to immediately return control to the frontend, providing users with timely responses while order processing continues in the background.
+
+Executors consume orders from the priority queue, handling them according to assigned priority levels. To ensure fault tolerance and reliability, executors are replicated across multiple instances. Mutual exclusion is managed through leader election, ensuring a single executor instance acts as the leader at any given time, preventing concurrent processing conflicts.
+
+The system is designed to manage crash, omission, and timing failures. Crash failures are handled via replication of executor service. Omission failures are handled at network stack by using application  protocol built upon TCP. Timing failures are mitigated through asynchronous processing and priority-based queuing, allowing for temporal decoupling of executor and orchestrator, optimizing overall response times and maintaining user satisfaction with the bookstore service's responsiveness and reliability.
