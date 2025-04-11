@@ -82,23 +82,53 @@ services:
       - ./utils:/app/utils
       - ./queue/src:/app/queue/src
       - ./logs/queue:/var/log/queue
-  executor:
+  executor-1:
     build:
       context: ./
       dockerfile: ./executor/Dockerfile
+    ports:
+      - 50060:50060
     environment:
-      - EXECUTOR_NAME=executor-${HOSTNAME}
+      - NAME=executor-1-1
+      - PORT=50060
+      - QUEUE_ADDR=queue_service:50055
       - PYTHONUNBUFFERED=TRUE
-      - PYTHONFILE=/app/queue/src/app.py
+      - PYTHONFILE=/app/executor/src/app.py
     volumes:
       - ./utils:/app/utils
       - ./executor/src:/app/executor/src
       - ./logs/executor:/var/log/executor
-      - executors:/var/record
-    hostname: "executor-${HOSTNAME}"
-
-volumes:
-  executors:
-    driver: local
+  executor-2:
+    build:
+      context: ./
+      dockerfile: ./executor/Dockerfile
+    ports:
+      - 50061:50061
+    environment:
+      - NAME=executor-2-1
+      - PORT=50061
+      - QUEUE_ADDR=queue_service:50055
+      - PYTHONUNBUFFERED=TRUE
+      - PYTHONFILE=/app/executor/src/app.py
+    volumes:
+      - ./utils:/app/utils
+      - ./executor/src:/app/executor/src
+      - ./logs/executor:/var/log/executor
+  executor-3:
+    build:
+      context: ./
+      dockerfile: ./executor/Dockerfile
+    ports:
+      - 50062:50062
+    environment:
+      - NAME=executor-3-1
+      - PORT=50062
+      - QUEUE_ADDR=queue_service:50055
+      - PYTHONUNBUFFERED=TRUE
+      - PYTHONFILE=/app/executor/src/app.py
+    volumes:
+      - ./utils:/app/utils
+      - ./executor/src:/app/executor/src
+      - ./logs/executor:/var/log/executor
 
     

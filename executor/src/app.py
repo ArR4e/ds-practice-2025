@@ -15,7 +15,7 @@ sys.path.insert(0, verification_path)
 pb_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb'))
 sys.path.insert(0, pb_path)
 
-election_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/leader_election'))
+election_path = os.path.abspath(os.path.join(FILE, '../../../utils/pb/leader_selection'))
 sys.path.insert(0, election_path)
 
 
@@ -36,7 +36,6 @@ from json import load
 import time
 from uuid import uuid4, UUID
 import random
-from asyncio import gather, TaskGroup
 import asyncio
 
 global logger
@@ -60,7 +59,7 @@ class ExecutorService(SelectionServicer):
         self.port = port
         self.peers = peers
         self.term = 0
-        self.STATE = FOLLOWER
+        self.state = FOLLOWER
         self._lock = threading.Lock()
         self.last_heartbeat = time.time()
         self.time_interval = random.uniform(1.5, 3.0)
@@ -75,7 +74,7 @@ class ExecutorService(SelectionServicer):
     async def send_heart_beats(self):
         tasks = [
             asyncio.create_task(self. send_heart_beat_to(name, address))
-            for name, address in self.peers
+            for name, address in self.peers.items()
         ]
         await asyncio.gather(*tasks)
 
@@ -95,15 +94,15 @@ class ExecutorService(SelectionServicer):
         except Exception as e:
             logger.debug(f'Error contacting {name} ({address})')
 
-    def timer(self):
+    async def timer(self):
         while True:
             time.sleep(0.1)
-            with self.lock:
+            with self._lock:
                 if self.state == LEADER:
                     self.send_heart_beats()
                     self.poll_and_process_order()
                 elif time.time() - self.last_heartbeat > self.time_interval:
-                    self.start_election()
+                    await self.start_election()
 
 
 
@@ -157,7 +156,7 @@ class ExecutorService(SelectionServicer):
 
         tasks = [
             asyncio.create_task(self.request_vote_from(name, address))
-            for name, address in self.peers
+            for name, address in self.peers.items()
         ]
         await asyncio.gather(*tasks)
 
@@ -174,7 +173,7 @@ class ExecutorService(SelectionServicer):
     async def declare_self_as_leader(self):
         tasks = [
             asyncio.create_task(self. send_leader_declaration_to(name, address))
-            for name, address in self.peers
+            for name, address in self.peers.items()
         ]
         await asyncio.gather(*tasks)
 
@@ -226,12 +225,14 @@ QUEUE_ADDR = os.getenv('QUEUE_ADDR')
 #
 # Change the peers to change the known peers, 
 # add all, self will be removed later
-#
+# see docker-compose file for peers
 #
 #
 def server():
     peers = {
-        'executor-1':'50065'
+        'executor-1-1':'50060',
+        'executor-2-1':'50061',
+        'executor-3-1':'50062'
     }
     #remove own name from peers
     peers.pop(NAME)
