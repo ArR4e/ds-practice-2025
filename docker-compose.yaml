@@ -82,3 +82,23 @@ services:
       - ./utils:/app/utils
       - ./queue/src:/app/queue/src
       - ./logs/queue:/var/log/queue
+  executor:
+    build:
+      context: ./
+      dockerfile: ./executor/Dockerfile
+    environment:
+      - EXECUTOR_NAME=executor-${HOSTNAME}
+      - PYTHONUNBUFFERED=TRUE
+      - PYTHONFILE=/app/queue/src/app.py
+    volumes:
+      - ./utils:/app/utils
+      - ./executor/src:/app/executor/src
+      - ./logs/executor:/var/log/executor
+      - executors:/var/record
+    hostname: "executor-${HOSTNAME}"
+
+volumes:
+  executors:
+    driver: local
+
+    

@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package leader_selection;
+
+
+service Selection{
+    rpc HealthCheck (HealthDeclaration) returns (OK);
+    rpc GetVoteRequest (VoteRequest) returns (VoteResponse);
+}
+
+message OK{
+}
+
+message HealthDeclaration{
+    bool status = 1;
+    string msg = 2;
+}
+
+message VoteRequest{
+    string senderUUID = 1;
+    string sender_name = 2;
+    int32 term = 3;
+}
+
+message VoteResponse{
+    string senderUUID = 1;
+    string sender_name = 2;
+    bool confirmation = 3;
+}
+
+
+
+
+
+
+
+
+
